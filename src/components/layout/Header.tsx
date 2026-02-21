@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
+import { GithubIcon } from '@/components/icons/GithubIcon'
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -28,10 +29,15 @@ export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
       </div>
 
       {/* 右侧 */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <div className="rounded-lg bg-muted px-3 py-1.5 text-sm text-muted-foreground">
           操作按钮区
         </div>
+        <Button variant="ghost" size="icon" className="size-8" asChild>
+          <a href="https://github.com/refinex-lab/Refinex-Agent" target="_blank" rel="noopener noreferrer">
+            <GithubIcon className="size-4" />
+          </a>
+        </Button>
         <ModeToggle />
       </div>
     </header>
