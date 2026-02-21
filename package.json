@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "dist-electron/main.mjs",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "dev:test": "vite --mode test",
@@ -13,7 +13,7 @@
     "build:prod": "tsc -b && vite build --mode production",
     "build:desktop": "tsc -b && vite build --mode desktop",
     "preview": "vite preview",
-    "preview:desktop": "electron dist-electron/main.mjs",
+    "preview:desktop": "electron dist-electron/main.js",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -77,5 +77,10 @@
     "vite": "^7.3.1",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
   }
 }
