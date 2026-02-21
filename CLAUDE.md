@@ -58,6 +58,16 @@ Refinex-Agent/
     ├── vite-env.d.ts              # VITE_* 环境变量类型声明
     ├── config/
     │   └── env.ts                 # 统一环境配置导出（禁止直接使用 import.meta.env）
+    ├── types/
+    │   └── api.ts                 # 统一响应类型、分页类型（对齐后端 Result/PageResult）
+    ├── utils/
+    │   └── token.ts               # Token 存取工具（localStorage）
+    ├── services/
+    │   ├── request.ts             # Axios 实例 + 拦截器（传输层）
+    │   ├── index.ts               # 统一导出所有 API 模块
+    │   └── modules/               # 按后端服务拆分的 API 模块（接口层）
+    │       ├── auth.ts            # 认证服务（登录、退出）
+    │       └── user.ts            # 用户服务（用户信息、列表）
     ├── components/
     │   ├── ui/                    # shadcn/ui 组件（CLI 自动生成）
     │   │   ├── button.tsx
@@ -68,7 +78,6 @@ Refinex-Agent/
     │   └── utils.ts               # cn() 等工具函数
     ├── hooks/                     # 自定义 Hooks
     ├── pages/                     # 页面级组件
-    ├── services/                  # API 调用层（对接 Refinex-Platform）
     ├── stores/                    # 状态管理
     └── types/                     # TypeScript 类型定义
 ```
@@ -82,6 +91,19 @@ Refinex-Agent/
 - `src/stores/` 存放全局状态管理逻辑
 - `src/pages/` 存放路由对应的页面级组件
 - `src/types/` 存放跨模块共享的 Type
+
+### 请求层规范
+
+- HTTP 请求统一使用 `src/services/request.ts` 导出的 `get` / `post` / `put` / `del` 方法，禁止直接 `import axios`
+- API 模块按后端微服务拆分，放在 `src/services/modules/` 下，每个模块顶部声明 `const PREFIX = env.API_PREFIX_*`
+- 新增 API 模块后需在 `src/services/index.ts` 中补充导出
+- 业务组件通过 `import { authApi, userApi } from '@/services'` 调用
+- 统一响应类型定义在 `src/types/api.ts`，与后端 `Result<T>` / `PageResult<T>` 对齐：
+  - `ApiResponse<T>`：`{ success: boolean, code: string, message: string, data: T }`
+  - `PageResponse<T>`：继承 `ApiResponse<T[]>`，额外携带 `total` / `totalPage` / `page` / `size`
+  - 分页请求参数 `PageParams`：`{ currentPage?: number, pageSize?: number }`（对齐后端 `PageRequest`）
+- 响应拦截器已自动解包：业务代码拿到的是 `data` 而非整个 `ApiResponse`
+- Token 存取通过 `src/utils/token.ts`（`getToken` / `setToken` / `removeToken`），请求拦截器自动注入
 
 ### 环境变量规范
 
