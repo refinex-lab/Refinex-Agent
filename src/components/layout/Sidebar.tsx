@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { MessageSquare, Plus, Sparkles, Settings, CircleHelp, LogOut, BookOpen, MessageCircleQuestion, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
@@ -13,6 +14,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { SettingsDialog } from '@/components/settings/SettingsDialog'
 
 interface SidebarProps {
   collapsed: boolean
@@ -20,6 +22,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const loginUser = useAuthStore((s) => s.loginUser)
   const logout = useAuthStore((s) => s.logout)
   const displayName = loginUser?.displayName || loginUser?.nickname || '用户'
@@ -132,7 +135,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Sparkles className="size-4" />
               个性化
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-3 py-2.5">
+            <DropdownMenuItem className="gap-3 py-2.5" onClick={() => setSettingsOpen(true)}>
               <Settings className="size-4" />
               设置
             </DropdownMenuItem>
@@ -167,6 +170,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </aside>
   )
 }
