@@ -31,7 +31,7 @@ Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构�
 
 ## Architecture
 
-Entry: `index.html` → `src/main.tsx` → `<RouterProvider router={router} />`
+Entry: `index.html` → `src/main.tsx` → `<ThemeProvider>` → `<RouterProvider>` + `<Toaster />`
 
 路由定义在 `src/router/index.tsx`，使用 `createBrowserRouter`（Data Mode）。页面组件通过 `lazy()` 按需加载，布局和守卫同步加载。
 
@@ -56,7 +56,7 @@ Refinex-Agent/
 ├── .env.local                     # 本地覆盖（已 gitignore）
 ├── public/                        # 静态资源
 └── src/
-    ├── main.tsx                   # 入口：挂载 RouterProvider
+    ├── main.tsx                   # 入口：挂载 ThemeProvider + RouterProvider + Toaster
     ├── App.tsx                    # AI 主界面（`/` 路由的 lazy 组件）
     ├── index.css                  # 全局样式（Tailwind CSS）
     ├── vite-env.d.ts              # VITE_* 环境变量类型声明
@@ -136,7 +136,22 @@ Refinex-Agent/
   - `PageResponse<T>`：继承 `ApiResponse<T[]>`，额外携带 `total` / `totalPage` / `page` / `size`
   - 分页请求参数 `PageParams`：`{ currentPage?: number, pageSize?: number }`（对齐后端 `PageRequest`）
 - 响应拦截器已自动解包：业务代码拿到的是 `data` 而非整个 `ApiResponse`
+- 响应拦截器已集成全局错误提示（sonner toast），业务代码无需手动处理通用错误
 - Token 存取通过 Zustand Auth Store（`src/stores/auth.ts`），请求拦截器通过 `useAuthStore.getState().token` 自动注入
+
+### 全局错误提示规范
+
+- 全局 toast 通知使用 sonner 库，`<Toaster>` 在 `src/main.tsx` 中挂载，配置为 `position="top-center"` + `richColors` + `closeButton`
+- `src/components/ui/sonner.tsx` 是 shadcn/ui 封装的 Toaster 组件，通过 `useTheme`（来自 `src/components/theme-provider.tsx`）获取当前主题，自动跟随 dark mode
+- `src/components/theme-provider.tsx` 提供 `ThemeProvider` 和 `useTheme`，遵循 shadcn/ui 官方 Vite Dark Mode 方案，支持 light / dark / system 三种模式，主题偏好持久化到 localStorage（key: `refinex-theme`）
+- `src/components/mode-toggle.tsx` 提供 `ModeToggle` 主题切换下拉按钮组件，可在布局中按需引入
+- 请求层（`src/services/request.ts`）已在响应拦截器中统一调用 `toast.error()` 处理以下场景：
+  - 业务异常（HTTP 200 + `success=false`）：弹出后端返回的 `message`
+  - HTTP 错误（4xx/5xx）：弹出 `HTTP_ERROR_MAP` 中的友好提示
+  - 网络异常/超时：弹出固定提示文案
+  - 401 未授权：仅重定向到登录页，不弹 toast（避免重复干扰）
+- 业务组件中如需主动弹出提示（如操作成功），直接 `import { toast } from 'sonner'` 调用即可，无需额外封装
+- 业务组件的 `catch` 中一般不需要再弹错误提示（拦截器已处理），除非需要覆盖默认行为或展示上下文相关的错误信息
 
 ### 环境变量规范
 

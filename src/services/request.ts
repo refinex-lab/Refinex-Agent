@@ -5,6 +5,7 @@ import type {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
+import { toast } from 'sonner'
 import { env } from '@/config/env'
 import { useAuthStore } from '@/stores/auth'
 import type { ApiResponse, PageResponse } from '@/types/api'
@@ -75,6 +76,8 @@ service.interceptors.response.use(
 
     if (res.code === 'UNAUTHORIZED' || res.code === '401') {
       handleUnauthorized()
+    } else {
+      toast.error(res.message || '请求失败')
     }
 
     return Promise.reject(new Error(res.message || '请求失败'))
@@ -87,11 +90,15 @@ service.interceptors.response.use(
 
       if (status === 401) {
         handleUnauthorized()
+      } else {
+        toast.error(msg)
       }
     } else if (error.code === 'ECONNABORTED') {
       console.error('[API 超时] 请求超时，请检查网络或稍后重试')
+      toast.error('请求超时，请检查网络或稍后重试')
     } else {
       console.error('[API 网络错误]', error.message)
+      toast.error('网络异常，请检查网络连接')
     }
 
     return Promise.reject(error)
