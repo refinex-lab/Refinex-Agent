@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,7 @@ import {
 import { Smartphone, Mail, ShieldCheck, LogIn, Loader2 } from 'lucide-react'
 import { authApi } from '@/services'
 import { IdentityType, CodeScene } from '@/services/modules/auth'
-import { setToken } from '@/utils/token'
+import { useAuthStore } from '@/stores/auth'
 import { EmailSentTip } from '@/components/auth/email-sent-tip'
 
 export function LoginForm({
@@ -21,6 +21,8 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<'form'>) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const login = useAuthStore((s) => s.login)
   const [method, setMethod] = useState<'phone' | 'email'>('phone')
   const [identifier, setIdentifier] = useState('')
   const [code, setCode] = useState('')
@@ -63,14 +65,14 @@ export function LoginForm({
     setLoading(true)
     setError('')
     try {
-      const result = await authApi.login({
+      await login({
         loginType: method === 'phone' ? IdentityType.PHONE : IdentityType.EMAIL,
         identifier,
         code,
         sourceType: 1,
       })
-      setToken(result.token.tokenValue)
-      navigate('/', { replace: true })
+      const from = (location.state as { from?: Location })?.from?.pathname || '/'
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败')
     } finally {

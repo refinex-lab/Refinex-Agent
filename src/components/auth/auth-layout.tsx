@@ -1,7 +1,12 @@
-import { Outlet } from 'react-router'
+import { Outlet, Navigate } from 'react-router'
 import { env } from '@/config/env'
+import { useAuthStore } from '@/stores/auth'
 
 export function AuthLayout() {
+  const token = useAuthStore((s) => s.token)
+
+  if (token) return <Navigate to="/" replace />
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative flex flex-col gap-4 p-6 md:p-10 overflow-hidden">

@@ -23,13 +23,17 @@ Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构�
 - **Runtime**: React 19, TypeScript 5.9 (strict mode)
 - **Build**: Vite 7 with `@vitejs/plugin-react`
 - **Package manager**: pnpm
+- **Routing**: React Router 7 Data Mode (`createBrowserRouter` + `RouterProvider`)
+- **State**: Zustand 5（Auth Store 管理 token/用户/权限，persist 中间件持久化 token）
 - **CSS**: Tailwind CSS 4.2 (via `@tailwindcss/vite` plugin), 主题定义在 `src/index.css`，使用 oklch CSS 自定义属性
 - **UI**: shadcn/ui (new-york style, lucide icons) + AI Elements
 - **Linting**: ESLint 9 flat config with typescript-eslint, react-hooks, react-refresh
 
 ## Architecture
 
-Entry: `index.html` → `src/main.tsx` → `<App />`
+Entry: `index.html` → `src/main.tsx` → `<RouterProvider router={router} />`
+
+路由定义在 `src/router/index.tsx`，使用 `createBrowserRouter`（Data Mode）。页面组件通过 `lazy()` 按需加载，布局和守卫同步加载。
 
 Path alias `@/*` maps to `src/*`（在 tsconfig 和 vite.config.ts 中均已配置）。
 
@@ -52,16 +56,27 @@ Refinex-Agent/
 ├── .env.local                     # 本地覆盖（已 gitignore）
 ├── public/                        # 静态资源
 └── src/
-    ├── main.tsx                   # 入口：挂载 React
-    ├── App.tsx                    # 根组件 / 路由入口
+    ├── main.tsx                   # 入口：挂载 RouterProvider
+    ├── App.tsx                    # AI 主界面（`/` 路由的 lazy 组件）
     ├── index.css                  # 全局样式（Tailwind CSS）
     ├── vite-env.d.ts              # VITE_* 环境变量类型声明
     ├── config/
     │   └── env.ts                 # 统一环境配置导出（禁止直接使用 import.meta.env）
+    ├── router/
+    │   ├── index.tsx              # createBrowserRouter 路由定义
+    │   └── AuthGuard.tsx          # 3 态路由守卫（水合 → 加载 → 认证）
+    ├── stores/
+    │   └── auth.ts                # Zustand Auth Store（token/loginUser/permissions）
+    ├── layouts/
+    │   └── MainLayout.tsx         # 主布局（当前仅 Outlet，后续扩展）
+    ├── pages/
+    │   ├── auth/
+    │   │   ├── Login.tsx          # 登录页（包装 LoginForm）
+    │   │   ├── Register.tsx       # 注册页（包装 RegisterForm）
+    │   │   └── ForgotPassword.tsx # 忘记密码页（包装 ForgotPasswordForm）
+    │   └── NotFound.tsx           # 404 页面
     ├── types/
     │   └── api.ts                 # 统一响应类型、分页类型（对齐后端 Result/PageResult）
-    ├── utils/
-    │   └── token.ts               # Token 存取工具（localStorage）
     ├── services/
     │   ├── request.ts             # Axios 实例 + 拦截器（传输层）
     │   ├── index.ts               # 统一导出所有 API 模块
@@ -77,8 +92,6 @@ Refinex-Agent/
     ├── lib/
     │   └── utils.ts               # cn() 等工具函数
     ├── hooks/                     # 自定义 Hooks
-    ├── pages/                     # 页面级组件
-    ├── stores/                    # 状态管理
     └── types/                     # TypeScript 类型定义
 ```
 
@@ -88,9 +101,29 @@ Refinex-Agent/
 - 构建页面时，必须优先检查 `src/components/ui/` 中已有的组件，基于已有组件进行组合和构造，避免重复造轮子
 - `src/components/` 下按业务模块组织自定义组件
 - `src/services/` 负责所有与 Refinex-Platform 后端的 API 交互
-- `src/stores/` 存放全局状态管理逻辑
-- `src/pages/` 存放路由对应的页面级组件
+- `src/stores/` 存放全局状态管理逻辑（Zustand Store）
+- `src/pages/` 存放路由对应的页面级组件，每个页面导出 `Component`（React Router lazy 约定）
+- `src/router/` 存放路由定义和路由守卫
+- `src/layouts/` 存放布局组件
 - `src/types/` 存放跨模块共享的 Type
+
+### 路由规范
+
+- 路由定义集中在 `src/router/index.tsx`，使用 `createBrowserRouter`（Data Mode）
+- 页面组件通过 `lazy(() => import(...))` 按需加载，布局和守卫同步加载
+- 页面组件必须导出命名 `Component`（非 default export），符合 React Router lazy 约定
+- 认证页面（登录/注册/忘记密码）使用 `AuthLayout`，已登录用户自动重定向到 `/`
+- 需要登录的页面包裹在 `AuthGuard` 下，未登录自动重定向到 `/login`
+- `AuthGuard` 实现 3 态守卫：persist 水合 → 用户信息加载 → 已认证放行
+
+### 状态管理规范
+
+- 全局状态使用 Zustand，Store 文件放在 `src/stores/` 下
+- Auth Store（`src/stores/auth.ts`）统一管理 token、loginUser、permissions
+- Token 通过 `zustand/middleware/persist` 持久化到 localStorage（key: `refinex-auth`）
+- 业务组件通过 `useAuthStore` hook 访问认证状态和 actions
+- 请求拦截器通过 `useAuthStore.getState().token` 获取 token（非 React 上下文）
+- 401 处理通过 `useAuthStore.getState()._reset()` 清除全部认证状态
 
 ### 请求层规范
 
@@ -103,7 +136,7 @@ Refinex-Agent/
   - `PageResponse<T>`：继承 `ApiResponse<T[]>`，额外携带 `total` / `totalPage` / `page` / `size`
   - 分页请求参数 `PageParams`：`{ currentPage?: number, pageSize?: number }`（对齐后端 `PageRequest`）
 - 响应拦截器已自动解包：业务代码拿到的是 `data` 而非整个 `ApiResponse`
-- Token 存取通过 `src/utils/token.ts`（`getToken` / `setToken` / `removeToken`），请求拦截器自动注入
+- Token 存取通过 Zustand Auth Store（`src/stores/auth.ts`），请求拦截器通过 `useAuthStore.getState().token` 自动注入
 
 ### 环境变量规范
 
@@ -114,7 +147,7 @@ Refinex-Agent/
 
 ## 后端项目参考（Refinex-Platform）
 
-后端代码位于 `/Users/refinex/develop/code/refinex/Refinex-Platform`，是基于 Java 21 + Spring Boot 4 + Spring Cloud 2025 的微服务架构。开发时如需了解接口契约、字段定义或业务逻辑，可直接查阅对应后端模块源码。
+后端代码位于 `/Users/refinex/develop/code/refinex/Refinex-Platform-Parent/Refinex-Platform`，是基于 Java 21 + Spring Boot 4 + Spring Cloud 2025 的微服务架构。开发时如需了解接口契约、字段定义或业务逻辑，可直接查阅对应后端模块源码。
 
 ### 后端技术栈
 

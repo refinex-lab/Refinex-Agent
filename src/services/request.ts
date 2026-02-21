@@ -6,7 +6,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 import { env } from '@/config/env'
-import { getToken, removeToken } from '@/utils/token'
+import { useAuthStore } from '@/stores/auth'
 import type { ApiResponse, PageResponse } from '@/types/api'
 
 /**
@@ -26,7 +26,7 @@ const service: AxiosInstance = axios.create({
 
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = getToken()
+    const token = useAuthStore.getState().token
     if (token) {
       config.headers.set(env.AUTH_TOKEN_HEADER, token)
     }
@@ -98,9 +98,9 @@ service.interceptors.response.use(
   },
 )
 
-/** 鉴权失败统一处理：清除 Token，跳转登录页 */
+/** 鉴权失败统一处理：清除状态，跳转登录页 */
 function handleUnauthorized(): void {
-  removeToken()
+  useAuthStore.getState()._reset()
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
   }
