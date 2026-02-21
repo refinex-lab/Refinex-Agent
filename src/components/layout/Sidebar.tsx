@@ -1,8 +1,18 @@
-import { MessageSquare, Plus } from 'lucide-react'
+import { MessageSquare, Plus, Sparkles, Settings, CircleHelp, LogOut, BookOpen, MessageCircleQuestion, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
 import { useAuthStore } from '@/stores/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface SidebarProps {
   collapsed: boolean
@@ -11,6 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const loginUser = useAuthStore((s) => s.loginUser)
+  const logout = useAuthStore((s) => s.logout)
   const displayName = loginUser?.displayName || loginUser?.nickname || '用户'
   const avatarUrl = loginUser?.avatarUrl
 
@@ -86,24 +97,75 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* 底部区域 - 用户信息 */}
       <div className="border-t border-sidebar-border p-3">
-        {collapsed ? (
-          <Avatar className="size-8">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-            <AvatarFallback className="text-xs">
-              {displayName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        ) : (
-          <div className="flex items-center gap-3 rounded-lg p-2.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">
-            <Avatar className="size-8 shrink-0">
-              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-              <AvatarFallback className="text-xs">
-                {displayName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate">{displayName}</span>
-          </div>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {collapsed ? (
+              <button type="button" className="cursor-pointer">
+                <Avatar className="size-8">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                  <AvatarFallback className="text-xs">
+                    {displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
+              >
+                <Avatar className="size-8 shrink-0">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                  <AvatarFallback className="text-xs">
+                    {displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{displayName}</span>
+              </button>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align="start"
+            className="mb-1 w-[240px]"
+          >
+            <DropdownMenuItem className="gap-3 py-2.5">
+              <Sparkles className="size-4" />
+              个性化
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5">
+              <Settings className="size-4" />
+              设置
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="gap-3 py-2.5">
+                <CircleHelp className="size-4" />
+                帮助
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent sideOffset={8}>
+                <DropdownMenuItem className="gap-3 py-2.5" asChild>
+                  <a href="https://github.com/refinex-lab/Refinex-Agent/wiki" target="_blank" rel="noopener noreferrer">
+                    <BookOpen className="size-4" />
+                    帮助文档
+                    <ExternalLink className="ml-auto size-3 text-muted-foreground" />
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-3 py-2.5" asChild>
+                  <a href="https://github.com/refinex-lab/Refinex-Agent/issues/new" target="_blank" rel="noopener noreferrer">
+                    <MessageCircleQuestion className="size-4" />
+                    意见反馈
+                    <ExternalLink className="ml-auto size-3 text-muted-foreground" />
+                  </a>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-3 py-2.5" onClick={() => logout()}>
+              <LogOut className="size-4" />
+              退出登录
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   )
