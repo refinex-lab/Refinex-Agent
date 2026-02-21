@@ -8,8 +8,11 @@ Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构�
 
 ## Commands
 
-- `pnpm dev` — 启动 Vite 开发服务器
-- `pnpm build` — 类型检查（`tsc -b`）+ Vite 构建
+- `pnpm dev` — 启动 Vite 开发服务器（development 模式）
+- `pnpm dev:test` — 启动 Vite 开发服务器（test 模式）
+- `pnpm build` — 类型检查（`tsc -b`）+ Vite 构建（production）
+- `pnpm build:test` — 类型检查 + Vite 构建（test）
+- `pnpm build:prod` — 类型检查 + Vite 构建（production，同 `build`）
 - `pnpm lint` — ESLint 检查
 - `pnpm preview` — 预览生产构建
 
@@ -42,12 +45,19 @@ Refinex-Agent/
 ├── tsconfig.app.json
 ├── tsconfig.node.json
 ├── vite.config.ts
+├── .env                           # 所有环境共享的默认值
+├── .env.development               # 开发环境配置
+├── .env.test                      # 测试环境配置
+├── .env.production                # 生产环境配置
+├── .env.local                     # 本地覆盖（已 gitignore）
 ├── public/                        # 静态资源
 └── src/
     ├── main.tsx                   # 入口：挂载 React
     ├── App.tsx                    # 根组件 / 路由入口
     ├── index.css                  # 全局样式（Tailwind CSS）
-    ├── vite-env.d.ts
+    ├── vite-env.d.ts              # VITE_* 环境变量类型声明
+    ├── config/
+    │   └── env.ts                 # 统一环境配置导出（禁止直接使用 import.meta.env）
     ├── components/
     │   ├── ui/                    # shadcn/ui 组件（CLI 自动生成）
     │   │   ├── button.tsx
@@ -72,6 +82,13 @@ Refinex-Agent/
 - `src/stores/` 存放全局状态管理逻辑
 - `src/pages/` 存放路由对应的页面级组件
 - `src/types/` 存放跨模块共享的 Type
+
+### 环境变量规范
+
+- 所有 `VITE_*` 环境变量必须在 `src/vite-env.d.ts` 的 `ImportMetaEnv` 接口中声明类型
+- 业务代码中禁止直接使用 `import.meta.env.VITE_*`，统一通过 `import { env } from "@/config/env"` 访问
+- 新增环境变量时需同步更新：`.env`（默认值）、`.env.development`、`.env.test`、`.env.production`、`src/vite-env.d.ts`（类型）、`src/config/env.ts`（导出）
+- `.env.local` 用于本地覆盖，已被 `.gitignore` 忽略，不提交到仓库
 
 ## Key Config
 

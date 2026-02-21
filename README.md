@@ -23,8 +23,17 @@ pnpm install
 # 启动开发服务器
 pnpm dev
 
+# 启动测试环境开发服务器
+pnpm dev:test
+
 # 类型检查 + 生产构建
 pnpm build
+
+# 测试环境构建
+pnpm build:test
+
+# 生产环境构建
+pnpm build:prod
 
 # 预览生产构建
 pnpm preview
@@ -32,6 +41,20 @@ pnpm preview
 # 代码检查
 pnpm lint
 ```
+
+## 环境配置
+
+项目使用 Vite 的 [环境变量与模式](https://cn.vite.dev/guide/env-and-mode.html) 机制管理多环境配置。
+
+| 文件 | 用途 | 是否提交 |
+| ---- | ---- | ---- |
+| `.env` | 所有环境共享的默认值 | 是 |
+| `.env.development` | 开发环境（`pnpm dev`） | 是 |
+| `.env.test` | 测试环境（`pnpm dev:test` / `pnpm build:test`） | 是 |
+| `.env.production` | 生产环境（`pnpm build`） | 是 |
+| `.env.local` | 本地覆盖（优先级最高，已 gitignore） | 否 |
+
+所有 `VITE_*` 变量在 `src/vite-env.d.ts` 中声明了类型，并通过 `src/config/env.ts` 统一导出，业务代码中应使用 `env.*` 而非直接访问 `import.meta.env`。
 
 ## 项目结构
 
