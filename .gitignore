@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-electron
+release
 
 # 本地环境变量覆盖文件（包含个人配置或敏感信息）
 *.local

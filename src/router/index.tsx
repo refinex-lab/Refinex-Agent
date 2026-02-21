@@ -1,9 +1,14 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, createHashRouter } from 'react-router'
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { AuthGuard } from '@/router/AuthGuard'
 import { MainLayout } from '@/layouts/MainLayout'
 
-export const router = createBrowserRouter([
+// Electron 生产模式从 file:// 加载，需使用 HashRouter
+const createRouter = window.electronAPI?.isElectron
+  ? createHashRouter
+  : createBrowserRouter
+
+export const router = createRouter([
   {
     element: <AuthLayout />,
     children: [

@@ -1,6 +1,6 @@
 # Refinex Agent
 
-基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构建的现代 AI Agent 前端应用。
+基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构建的现代 AI Agent 应用，支持 Web 浏览器和 Electron 桌面端双模式运行。
 
 ## 技术栈
 
@@ -8,6 +8,7 @@
 | ---- | ---- |
 | 框架 | React 19 + TypeScript 5.9 |
 | 构建 | Vite 7 |
+| 桌面端 | Electron 40（via vite-plugin-electron） |
 | 样式 | Tailwind CSS 4.2（Vite 插件模式） |
 | UI 组件 | shadcn/ui (new-york) + AI Elements |
 | 图标 | Lucide React |
@@ -20,13 +21,16 @@
 # 安装依赖
 pnpm install
 
-# 启动开发服务器
+# 启动 Web 开发服务器
 pnpm dev
 
 # 启动测试环境开发服务器
 pnpm dev:test
 
-# 类型检查 + 生产构建
+# 启动 Electron 桌面端开发模式
+pnpm dev:desktop
+
+# 类型检查 + Web 生产构建
 pnpm build
 
 # 测试环境构建
@@ -35,8 +39,14 @@ pnpm build:test
 # 生产环境构建
 pnpm build:prod
 
-# 预览生产构建
+# Electron 桌面端构建
+pnpm build:desktop
+
+# 预览 Web 生产构建
 pnpm preview
+
+# 预览 Electron 桌面端构建
+pnpm preview:desktop
 
 # 代码检查
 pnpm lint
@@ -59,6 +69,9 @@ pnpm lint
 ## 项目结构
 
 ```text
+electron/                          # Electron 桌面端
+├── main.ts                        # 主进程入口
+└── preload.ts                     # 预加载脚本（contextBridge）
 src/
 ├── main.tsx                   # 入口：挂载 React
 ├── App.tsx                    # 根组件 / 路由入口
@@ -67,7 +80,8 @@ src/
 ├── config/
 │   └── env.ts                 # 统一环境配置导出
 ├── types/
-│   └── api.ts                 # 统一响应类型、分页类型
+│   ├── api.ts                 # 统一响应类型、分页类型
+│   └── electron.d.ts          # Electron API 全局类型声明
 ├── utils/
 │   └── token.ts               # Token 存取工具
 ├── services/
@@ -80,7 +94,8 @@ src/
 │   ├── ui/                    # shadcn/ui 原子组件（CLI 生成，勿手动修改）
 │   └── [模块名]/               # 业务组件，按模块组织
 ├── lib/
-│   └── utils.ts               # cn() 等通用工具函数
+│   ├── utils.ts               # cn() 等通用工具函数
+│   └── platform.ts            # 平台检测（isElectron / platform）
 ├── hooks/                     # 自定义 React Hooks
 ├── pages/                     # 页面级组件（对应路由）
 ├── stores/                    # 全局状态管理

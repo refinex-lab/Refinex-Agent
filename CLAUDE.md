@@ -4,17 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构建的现代 AI Agent 前端项目。后端接口能力由 [Refinex-Platform](https://github.com/refinex-lab/Refinex-Platform) 提供。UI 语言为中文。
+Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构建的现代 AI Agent 前端项目，支持 Web 浏览器和 Electron 桌面端双模式运行。后端接口能力由 [Refinex-Platform](https://github.com/refinex-lab/Refinex-Platform) 提供。UI 语言为中文。
 
 ## Commands
 
-- `pnpm dev` — 启动 Vite 开发服务器（development 模式）
+- `pnpm dev` — 启动 Vite 开发服务器（development 模式，纯 Web）
 - `pnpm dev:test` — 启动 Vite 开发服务器（test 模式）
-- `pnpm build` — 类型检查（`tsc -b`）+ Vite 构建（production）
+- `pnpm dev:desktop` — 启动 Electron 桌面端开发模式（Vite + Electron）
+- `pnpm build` — 类型检查（`tsc -b`）+ Vite 构建（production，纯 Web）
 - `pnpm build:test` — 类型检查 + Vite 构建（test）
 - `pnpm build:prod` — 类型检查 + Vite 构建（production，同 `build`）
+- `pnpm build:desktop` — 类型检查 + Vite 构建（desktop，含 Electron 主进程）
 - `pnpm lint` — ESLint 检查
-- `pnpm preview` — 预览生产构建
+- `pnpm preview` — 预览 Web 生产构建
+- `pnpm preview:desktop` — 预览 Electron 桌面端构建
 
 尚未配置测试框架。
 
@@ -22,8 +25,9 @@ Refinex Agent 是一个基于 shadcn/ui、Tailwind CSS 4.2 和 AI Elements 构�
 
 - **Runtime**: React 19, TypeScript 5.9 (strict mode)
 - **Build**: Vite 7 with `@vitejs/plugin-react`
+- **Desktop**: Electron 40 via `vite-plugin-electron`（条件加载，仅 desktop 模式激活）
 - **Package manager**: pnpm
-- **Routing**: React Router 7 Data Mode (`createBrowserRouter` + `RouterProvider`)
+- **Routing**: React Router 7 Data Mode（Web 使用 `createBrowserRouter`，Electron 使用 `createHashRouter`）
 - **State**: Zustand 5（Auth Store 管理 token/用户/权限，persist 中间件持久化 token）
 - **CSS**: Tailwind CSS 4.2 (via `@tailwindcss/vite` plugin), 主题定义在 `src/index.css`，使用 oklch CSS 自定义属性
 - **UI**: shadcn/ui (new-york style, lucide icons) + AI Elements
@@ -47,7 +51,7 @@ Refinex-Agent/
 ├── components.json                # shadcn/ui 配置
 ├── tsconfig.json
 ├── tsconfig.app.json
-├── tsconfig.node.json
+├── tsconfig.node.json             # Node 侧 TS 配置（含 vite.config.ts + electron/）
 ├── vite.config.ts
 ├── .env                           # 所有环境共享的默认值
 ├── .env.development               # 开发环境配置
@@ -55,6 +59,9 @@ Refinex-Agent/
 ├── .env.production                # 生产环境配置
 ├── .env.local                     # 本地覆盖（已 gitignore）
 ├── public/                        # 静态资源
+├── electron/                      # Electron 桌面端（主进程 + 预加载脚本）
+│   ├── main.ts                    # 主进程入口（BrowserWindow 创建、生命周期）
+│   └── preload.ts                 # 预加载脚本（contextBridge 暴露安全 IPC）
 └── src/
     ├── main.tsx                   # 入口：挂载 ThemeProvider + RouterProvider + Toaster
     ├── App.tsx                    # AI 主界面（`/` 路由的 lazy 组件）
@@ -63,7 +70,7 @@ Refinex-Agent/
     ├── config/
     │   └── env.ts                 # 统一环境配置导出（禁止直接使用 import.meta.env）
     ├── router/
-    │   ├── index.tsx              # createBrowserRouter 路由定义
+    │   ├── index.tsx              # 路由定义（Web: BrowserRouter / Electron: HashRouter）
     │   └── AuthGuard.tsx          # 3 态路由守卫（水合 → 加载 → 认证）
     ├── stores/
     │   └── auth.ts                # Zustand Auth Store（token/loginUser/permissions）
@@ -76,7 +83,8 @@ Refinex-Agent/
     │   │   └── ForgotPassword.tsx # 忘记密码页（包装 ForgotPasswordForm）
     │   └── NotFound.tsx           # 404 页面
     ├── types/
-    │   └── api.ts                 # 统一响应类型、分页类型（对齐后端 Result/PageResult）
+    │   ├── api.ts                 # 统一响应类型、分页类型（对齐后端 Result/PageResult）
+    │   └── electron.d.ts          # Electron API 全局类型声明（window.electronAPI）
     ├── services/
     │   ├── request.ts             # Axios 实例 + 拦截器（传输层）
     │   ├── index.ts               # 统一导出所有 API 模块
@@ -94,7 +102,8 @@ Refinex-Agent/
     │   ├── layout/                # 布局组件（Sidebar、Header、MainContent、InputBar）
     │   └── [业务组件]/             # 项目业务组件
     ├── lib/
-    │   └── utils.ts               # cn() 等工具函数
+    │   ├── utils.ts               # cn() 等工具函数
+    │   └── platform.ts            # 平台检测（isElectron / platform）
     ├── hooks/                     # 自定义 Hooks
     └── types/                     # TypeScript 类型定义
 ```
@@ -116,7 +125,7 @@ Refinex-Agent/
 
 ### 路由规范
 
-- 路由定义集中在 `src/router/index.tsx`，使用 `createBrowserRouter`（Data Mode）
+- 路由定义集中在 `src/router/index.tsx`，Web 模式使用 `createBrowserRouter`，Electron 模式使用 `createHashRouter`（通过 `window.electronAPI` 自动判断）
 - 页面组件通过 `lazy(() => import(...))` 按需加载，布局和守卫同步加载
 - 页面组件必须导出命名 `Component`（非 default export），符合 React Router lazy 约定
 - 认证页面（登录/注册/忘记密码）使用 `AuthLayout`，已登录用户自动重定向到 `/`
@@ -259,5 +268,16 @@ DDL 和种子数据位于 `Refinex-Platform/document/sql/`。所有表使用 `es
 ## Key Config
 
 - **shadcn/ui** (`components.json`): new-york style, CSS variables enabled, neutral base color. Components → `@/components/ui`, hooks → `@/hooks`.
-- **TypeScript**: Strict mode with `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`. Uses project references (`tsconfig.app.json` for app, `tsconfig.node.json` for Vite config).
+- **TypeScript**: Strict mode with `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`. Uses project references (`tsconfig.app.json` for app, `tsconfig.node.json` for Vite config + Electron).
 - **Tailwind 4.2**: 使用 Vite 插件方式集成，非 PostCSS。Dark mode via `.dark` class.
+
+### Electron 桌面端规范
+
+- 项目支持 Web（浏览器）和 Desktop（Electron）双模式运行，通过 Vite `mode` 区分
+- `vite.config.ts` 中 `vite-plugin-electron/simple` 仅在 `mode === 'desktop'` 时加载，Web 模式完全不受影响
+- Electron 主进程和预加载脚本位于 `electron/` 目录，由 `tsconfig.node.json` 管理类型（Node.js 环境）
+- 渲染进程（`src/`）通过 `window.electronAPI` 访问 Electron 能力，类型声明在 `src/types/electron.d.ts`
+- 平台检测使用 `src/lib/platform.ts` 导出的 `isElectron` / `platform`，业务代码中按需引入
+- 预加载脚本通过 `contextBridge.exposeInMainWorld` 暴露安全 IPC，禁止在渲染进程中直接使用 Node.js API
+- 安全配置：`contextIsolation: true` + `sandbox: true` + `nodeIntegration: false`
+- 构建产物：Web → `dist/`，Electron 主进程 → `dist-electron/`，打包产物 → `release/`
