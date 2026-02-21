@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +9,6 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-  FieldError,
 } from '@/components/ui/field'
 import { Smartphone, Mail, ShieldCheck, UserPlus, Lock, LockKeyhole, Loader2 } from 'lucide-react'
 import { authApi } from '@/services'
@@ -29,12 +29,10 @@ export function RegisterForm({
   const [loading, setLoading] = useState(false)
   const [sendingCode, setSendingCode] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
-  const [error, setError] = useState('')
 
   async function handleSendCode() {
     if (countdown > 0 || sendingCode || !identifier) return
     setSendingCode(true)
-    setError('')
     try {
       if (method === 'phone') {
         await authApi.sendSms({ phone: identifier, scene: CodeScene.REGISTER })
@@ -52,8 +50,8 @@ export function RegisterForm({
           return prev - 1
         })
       }, 1000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '验证码发送失败')
+    } catch {
+      // 错误已由请求拦截器统一 toast 提示
     } finally {
       setSendingCode(false)
     }
@@ -62,11 +60,10 @@ export function RegisterForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致')
+      toast.error('两次输入的密码不一致')
       return
     }
     setLoading(true)
-    setError('')
     try {
       await authApi.register({
         registerType: method === 'phone' ? IdentityType.PHONE : IdentityType.EMAIL,
@@ -75,8 +72,8 @@ export function RegisterForm({
         password,
       })
       navigate('/login', { replace: true })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '注册失败')
+    } catch {
+      // 错误已由请求拦截器统一 toast 提示
     } finally {
       setLoading(false)
     }
@@ -86,7 +83,6 @@ export function RegisterForm({
     setMethod(method === 'phone' ? 'email' : 'phone')
     setIdentifier('')
     setCode('')
-    setError('')
     setCodeSent(false)
   }
 
@@ -103,7 +99,6 @@ export function RegisterForm({
         </p>
       </div>
       <FieldGroup>
-        {error && <FieldError>{error}</FieldError>}
         <Field>
           <FieldLabel>
             {method === 'phone' ? (

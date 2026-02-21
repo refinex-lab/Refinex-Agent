@@ -8,7 +8,6 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-  FieldError,
 } from '@/components/ui/field'
 import { Smartphone, Mail, ShieldCheck, LogIn, Loader2 } from 'lucide-react'
 import { authApi } from '@/services'
@@ -30,12 +29,10 @@ export function LoginForm({
   const [loading, setLoading] = useState(false)
   const [sendingCode, setSendingCode] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
-  const [error, setError] = useState('')
 
   async function handleSendCode() {
     if (countdown > 0 || sendingCode || !identifier) return
     setSendingCode(true)
-    setError('')
     try {
       if (method === 'phone') {
         await authApi.sendSms({ phone: identifier, scene: CodeScene.LOGIN })
@@ -53,8 +50,8 @@ export function LoginForm({
           return prev - 1
         })
       }, 1000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '验证码发送失败')
+    } catch {
+      // 错误已由请求拦截器统一 toast 提示
     } finally {
       setSendingCode(false)
     }
@@ -63,7 +60,6 @@ export function LoginForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setError('')
     try {
       await login({
         loginType: method === 'phone' ? IdentityType.PHONE : IdentityType.EMAIL,
@@ -73,8 +69,8 @@ export function LoginForm({
       })
       const from = (location.state as { from?: Location })?.from?.pathname || '/'
       navigate(from, { replace: true })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '登录失败')
+    } catch {
+      // 错误已由请求拦截器统一 toast 提示
     } finally {
       setLoading(false)
     }
@@ -84,7 +80,6 @@ export function LoginForm({
     setMethod(method === 'phone' ? 'email' : 'phone')
     setIdentifier('')
     setCode('')
-    setError('')
     setCodeSent(false)
   }
 
@@ -101,7 +96,6 @@ export function LoginForm({
         </p>
       </div>
       <FieldGroup>
-        {error && <FieldError>{error}</FieldError>}
         <Field>
           <FieldLabel>
             {method === 'phone' ? (
