@@ -1,6 +1,8 @@
-import { MessageSquare, Plus, User } from 'lucide-react'
+import { MessageSquare, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
+import { useAuthStore } from '@/stores/auth'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface SidebarProps {
   collapsed: boolean
@@ -8,6 +10,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const loginUser = useAuthStore((s) => s.loginUser)
+  const displayName = loginUser?.displayName || loginUser?.nickname || '用户'
+  const avatarUrl = loginUser?.avatarUrl
+
   return (
     <aside
       className={`flex flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300${collapsed ? ' cursor-pointer' : ''}`}
@@ -81,15 +87,21 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* 底部区域 - 用户信息 */}
       <div className="border-t border-sidebar-border p-3">
         {collapsed ? (
-          <Button variant="ghost" size="icon" className="size-8">
-            <User className="size-4" />
-          </Button>
+          <Avatar className="size-8">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+            <AvatarFallback className="text-xs">
+              {displayName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
         ) : (
-          <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent p-2.5 text-sm text-sidebar-foreground/60">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent">
-              <User className="size-4" />
-            </div>
-            用户信息区
+          <div className="flex items-center gap-3 rounded-lg p-2.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">
+            <Avatar className="size-8 shrink-0">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+              <AvatarFallback className="text-xs">
+                {displayName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate">{displayName}</span>
           </div>
         )}
       </div>

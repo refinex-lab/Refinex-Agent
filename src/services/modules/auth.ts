@@ -3,8 +3,8 @@ import { env } from '@/config/env'
 
 // ── 枚举常量 ─────────────────────────────────────────────
 
-/** 登录/注册方式：2=手机号 3=邮箱 */
-export const IdentityType = { PHONE: 2, EMAIL: 3 } as const
+/** 登录/注册方式：2=手机号短信 4=邮箱验证码 */
+export const IdentityType = { PHONE: 2, EMAIL: 4 } as const
 
 /** 验证码场景 */
 export const CodeScene = { LOGIN: 'login', REGISTER: 'register', RESET: 'reset' } as const
