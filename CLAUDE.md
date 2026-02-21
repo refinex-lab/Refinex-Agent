@@ -88,6 +88,10 @@ Refinex-Agent/
     │   │   ├── button.tsx
     │   │   ├── card.tsx
     │   │   └── ...
+    │   ├── ai-elements/           # AI Elements 组件（CLI 自动生成，AI/Agent 场景专用）
+    │   │   └── ...
+    │   ├── icons/                 # 自定义 SVG 图标组件
+    │   ├── layout/                # 布局组件（Sidebar、Header、MainContent、InputBar）
     │   └── [业务组件]/             # 项目业务组件
     ├── lib/
     │   └── utils.ts               # cn() 等工具函数
@@ -98,7 +102,10 @@ Refinex-Agent/
 ### 约定
 
 - `src/components/ui/` 存放全量 shadcn/ui 原子组件，通过 `npx shadcn@latest add` 添加，不手动修改
-- 构建页面时，必须优先检查 `src/components/ui/` 中已有的组件，基于已有组件进行组合和构造，避免重复造轮子
+- `src/components/ai-elements/` 存放 AI Elements 组件（[AI Elements](https://elements.ai-sdk.dev/)），通过 `npx shadcn@latest add @ai-elements/<name>` 添加，不手动修改
+- 构建 AI / Agent 相关页面时，必须优先检查 `src/components/ai-elements/` 中已有的组件（如 chat、message、markdown、attachments、prompt-input 等），直接使用或组合
+- 构建通用页面时，必须优先检查 `src/components/ui/` 中已有的 shadcn/ui 组件，基于已有组件进行组合和构造
+- 以上两个目录的组件优先级高于自行编写，避免重复造轮子
 - `src/components/` 下按业务模块组织自定义组件
 - `src/services/` 负责所有与 Refinex-Platform 后端的 API 交互
 - `src/stores/` 存放全局状态管理逻辑（Zustand Store）
