@@ -75,4 +75,4 @@ npx shadcn@latest add [组件名]
 
 ## License
 
-Private
+[MIT](LICENSE)
