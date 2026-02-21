@@ -65,7 +65,8 @@ Refinex-Agent/
 
 ### 约定
 
-- `src/components/ui/` 仅存放 shadcn/ui 原子组件，通过 `npx shadcn@latest add` 添加，不手动修改
+- `src/components/ui/` 存放全量 shadcn/ui 原子组件，通过 `npx shadcn@latest add` 添加，不手动修改
+- 构建页面时，必须优先检查 `src/components/ui/` 中已有的组件，基于已有组件进行组合和构造，避免重复造轮子
 - `src/components/` 下按业务模块组织自定义组件
 - `src/services/` 负责所有与 Refinex-Platform 后端的 API 交互
 - `src/stores/` 存放全局状态管理逻辑
