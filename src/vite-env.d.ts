@@ -21,6 +21,8 @@ interface ImportMetaEnv {
   readonly VITE_API_PREFIX_TOKEN: string
   /** 系统模块前缀 */
   readonly VITE_API_PREFIX_SYSTEM: string
+  /** AI 模块前缀 */
+  readonly VITE_API_PREFIX_AI: string
 
   /** Token 请求头名称 */
   readonly VITE_AUTH_TOKEN_HEADER: string
