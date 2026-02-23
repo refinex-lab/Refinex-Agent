@@ -5,12 +5,30 @@ import { ModeToggle } from '@/components/mode-toggle'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
 import { GithubIcon } from '@/components/icons/GithubIcon'
 import { useModelStore } from '@/stores/model'
+import { useChatStore } from '@/stores/chat'
+import { useConversationStore } from '@/stores/conversation'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+function ConversationTitle() {
+  const conversationId = useChatStore((s) => s.conversationId)
+  const conversations = useConversationStore((s) => s.conversations)
+
+  if (!conversationId) {
+    return <div className="text-sm text-muted-foreground">新对话</div>
+  }
+
+  const conv = conversations.find((c) => c.conversationId === conversationId)
+  return (
+    <div className="max-w-[300px] truncate text-sm font-medium">
+      {conv?.title || '对话'}
+    </div>
+  )
+}
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -31,7 +49,7 @@ export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
   const selected = provisions.find((p) => p.id === selectedProvisionId)
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-4">
+    <header className="relative flex h-14 shrink-0 items-center justify-between bg-background px-4">
       {/* 左侧 */}
       <div className="flex items-center gap-2">
         {sidebarCollapsed && (
@@ -51,7 +69,7 @@ export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
                   <img
                     src={`/images/ai-providers/${selected.providerCode}.svg`}
                     alt={selected.providerCode}
-                    className="size-4 shrink-0"
+                    className="size-5 shrink-0"
                   />
                   <span>{selected.modelName}</span>
                 </>
@@ -90,16 +108,15 @@ export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
         </DropdownMenu>
       </div>
 
-      {/* 中间 */}
-      <div className="rounded-lg bg-muted px-3 py-1.5 text-sm text-muted-foreground">
-        标题区
+      {/* 中间 - 对话标题（绝对定位居中） */}
+      <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto">
+          <ConversationTitle />
+        </div>
       </div>
 
       {/* 右侧 */}
       <div className="flex items-center gap-1">
-        <div className="rounded-lg bg-muted px-3 py-1.5 text-sm text-muted-foreground">
-          操作按钮区
-        </div>
         <Button variant="ghost" size="icon" className="size-8" asChild>
           <a href="https://github.com/refinex-lab/Refinex-Agent" target="_blank" rel="noopener noreferrer">
             <GithubIcon className="size-4" />

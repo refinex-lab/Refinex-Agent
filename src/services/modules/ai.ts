@@ -1,4 +1,5 @@
 import { get, post, put, del } from '@/services/request'
+import service from '@/services/request'
 import { env } from '@/config/env'
 import type { PageParams } from '@/types/api'
 
@@ -1023,4 +1024,17 @@ export function searchKnowledgeBase(kbId: number, data: KbSearchRequest) {
 /** 文字转语音 */
 export function textToSpeech(data: TtsRequest) {
   return post<string>(`${PREFIX}/audio/tts`, data)
+}
+
+// ── File Upload ──
+
+/** 上传文件（返回 CDN URL） */
+export function uploadFile(file: File, category = 'chat'): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('category', category)
+  return service.post(`${PREFIX}/files/upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000,
+  }).then((res: any) => res.data ?? res)
 }

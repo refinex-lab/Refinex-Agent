@@ -23,6 +23,7 @@ interface ConversationActions {
   renameConversation: (id: string, title: string) => Promise<void>
   togglePin: (id: string) => Promise<void>
   setPlaceholderMode: (mode: 'image' | 'app' | null) => void
+  refreshAfterStream: () => Promise<void>
 }
 
 type ConversationStore = ConversationState & ConversationActions
@@ -127,6 +128,10 @@ export const useConversationStore = create<ConversationStore>()(
 
       setPlaceholderMode(mode) {
         set({ placeholderMode: mode, activeConversationId: null }, false, 'setPlaceholderMode')
+      },
+
+      async refreshAfterStream() {
+        await get().fetchConversations(true)
       },
     }),
     { name: 'ConversationStore', enabled: import.meta.env.DEV },
