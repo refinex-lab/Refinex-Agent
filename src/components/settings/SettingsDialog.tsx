@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   Bell,
+  Bot,
   Check,
   Globe,
   Home,
@@ -40,6 +41,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { AiSettingsPanel } from "./ai/AiSettingsPanel"
 
 const data = {
   nav: [
@@ -54,6 +56,7 @@ const data = {
     { name: "音频与视频", icon: Video },
     { name: "关联账号", icon: Link },
     { name: "隐私与可见性", icon: Lock },
+    { name: "AI 配置", icon: Bot },
     { name: "高级设置", icon: Settings },
   ],
 }
@@ -68,7 +71,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 md:max-h-[500px] md:max-w-[700px] lg:max-w-[800px]">
+      <DialogContent className="overflow-hidden p-0 md:max-h-[600px] md:max-w-[700px] lg:max-w-[900px]">
         <DialogTitle className="sr-only">设置</DialogTitle>
         <DialogDescription className="sr-only">
           自定义你的设置
@@ -98,7 +101,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </SidebarGroup>
             </SidebarContent>
           </Sidebar>
-          <main className="flex h-[480px] flex-1 flex-col overflow-hidden">
+          <main className="flex h-[580px] flex-1 flex-col overflow-hidden">
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
               <div className="flex items-center gap-2 px-4">
                 <Breadcrumb>
@@ -115,12 +118,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-video max-w-3xl rounded-xl bg-muted/50"
-                />
-              ))}
+              {activeItem === "AI 配置" ? (
+                <AiSettingsPanel />
+              ) : (
+                Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-video max-w-3xl rounded-xl bg-muted/50"
+                  />
+                ))
+              )}
             </div>
           </main>    </SidebarProvider>
       </DialogContent>
