@@ -3,6 +3,7 @@ import { PaperclipIcon, BookOpenIcon, ScrollTextIcon, CheckIcon, XIcon, ArrowUpI
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
+import { usePreferencesStore } from '@/stores/preferences'
 import {
   usePromptInputAttachments,
   type PromptInputMessage,
@@ -140,6 +141,7 @@ function ChatSubmitButton({
 }
 
 export function ChatInput() {
+  const wideMode = usePreferencesStore((s) => s.wideMode)
   const sendMessage = useChatStore((s) => s.sendMessage)
   const stopStreaming = useChatStore((s) => s.stopStreaming)
   const streamStatus = useChatStore((s) => s.streamStatus)
@@ -244,7 +246,7 @@ export function ChatInput() {
 
   return (
     <div className="shrink-0 px-4 pb-4 pt-2">
-      <div className="mx-auto max-w-[760px]">
+      <div className={`mx-auto ${wideMode ? 'max-w-[1024px]' : 'max-w-[760px]'}`}>
         <TooltipProvider>
           <PromptInput
             accept="image/*,audio/*,.pdf,.doc,.docx,.txt,.md,.csv"

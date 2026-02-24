@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
+import { ChatSettingsSheet } from '@/components/chat/ChatSettingsSheet'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
 import { GithubIcon } from '@/components/icons/GithubIcon'
 import { useModelStore } from '@/stores/model'
@@ -122,6 +123,7 @@ export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
             <GithubIcon className="size-4" />
           </a>
         </Button>
+        <ChatSettingsSheet />
         <ModeToggle />
       </div>
     </header>
