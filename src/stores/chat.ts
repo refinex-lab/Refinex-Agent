@@ -81,7 +81,9 @@ export const useChatStore = create<ChatStore>()(
 
       async sendMessage(text, imageUrls = [], audioUrl) {
         const { conversationId, knowledgeBaseIds, promptTemplateId } = get()
-        const modelProvisionId = useModelStore.getState().selectedProvisionId
+        const modelState = useModelStore.getState()
+        const selectedProvision = modelState.provisions.find((p) => p.id === modelState.selectedProvisionId)
+        const modelId = selectedProvision?.modelId ?? null
         const token = useAuthStore.getState().token
 
         if (!text.trim() && imageUrls.length === 0 && !audioUrl) return
@@ -130,7 +132,7 @@ export const useChatStore = create<ChatStore>()(
         // 3. Build request body
         const body: Record<string, unknown> = {
           message: text,
-          modelId: modelProvisionId,
+          modelId,
         }
         if (conversationId) body.conversationId = conversationId
         if (imageUrls.length > 0) body.imageUrls = imageUrls
