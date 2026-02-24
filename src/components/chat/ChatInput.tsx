@@ -34,6 +34,16 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { KnowledgeBase, PromptTemplate } from '@/services/modules/ai'
 
+/** 上传文件按钮（调用 PromptInput 内部的 file input） */
+function UploadButton() {
+  const { openFileDialog } = usePromptInputAttachments()
+  return (
+    <PromptInputButton tooltip="上传文件" onClick={openFileDialog}>
+      <PaperclipIcon className="size-4" />
+    </PromptInputButton>
+  )
+}
+
 /** 输入框上方的附件预览区 */
 function AttachmentBar() {
   const { files, remove } = usePromptInputAttachments()
@@ -271,9 +281,7 @@ export function ChatInput() {
 
             <PromptInputFooter>
               <PromptInputTools>
-                <PromptInputButton tooltip="上传文件">
-                  <PaperclipIcon className="size-4" />
-                </PromptInputButton>
+                <UploadButton />
 
                 {/* 提示词选择 */}
                 <Popover>

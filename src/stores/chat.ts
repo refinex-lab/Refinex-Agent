@@ -279,7 +279,7 @@ export const useChatStore = create<ChatStore>()(
           set({ ttsLoadingId: null, ttsAudioUrl: audioUrl, ttsPlayingId: messageId }, false, 'tts/play')
         } catch {
           set({ ttsLoadingId: null }, false, 'tts/error')
-          toast.error('语音合成失败')
+          // toast.error('语音合成失败')
         }
       },
 
