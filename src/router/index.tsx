@@ -24,6 +24,8 @@ export const router = createRouter([
         element: <MainLayout />,
         children: [
           { path: '/', lazy: () => import('@/App') },
+          { path: '/knowledge-base', lazy: () => import('@/pages/knowledge-base/KnowledgeBase') },
+          { path: '/knowledge-base/:kbId', lazy: () => import('@/pages/knowledge-base/KnowledgeBase') },
         ],
       },
     ],

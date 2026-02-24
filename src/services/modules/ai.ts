@@ -996,6 +996,11 @@ export function updateDocument(kbId: number, docId: number, data: DocumentUpdate
   return put<Document>(`${PREFIX}/knowledge-bases/${kbId}/documents/${docId}`, data)
 }
 
+/** 更新文档内容（纯文本） */
+export function updateDocumentContent(kbId: number, docId: number, content: string) {
+  return put<Document>(`${PREFIX}/knowledge-bases/${kbId}/documents/${docId}/content`, { content })
+}
+
 /** 删除文档 */
 export function deleteDocument(kbId: number, docId: number) {
   return del<void>(`${PREFIX}/knowledge-bases/${kbId}/documents/${docId}`)

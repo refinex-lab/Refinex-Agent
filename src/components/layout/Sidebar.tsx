@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SquarePen, Search, ImageIcon, LayoutGrid, Sparkles, Settings, CircleHelp, LogOut, BookOpen, MessageCircleQuestion, ExternalLink } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router'
+import { SquarePen, Search, ImageIcon, LayoutGrid, Sparkles, Settings, CircleHelp, LogOut, BookOpen, MessageCircleQuestion, ExternalLink, LibraryBig } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
 import { useAuthStore } from '@/stores/auth'
@@ -33,6 +34,9 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isKbActive = location.pathname.startsWith('/knowledge-base')
   const loginUser = useAuthStore((s) => s.loginUser)
   const logout = useAuthStore((s) => s.logout)
   const displayName = loginUser?.displayName || loginUser?.nickname || '用户'
@@ -132,6 +136,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent side="right">图片</TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={isKbActive ? 'secondary' : 'ghost'} size="icon" className="size-8" onClick={(e) => { e.stopPropagation(); navigate('/knowledge-base') }}>
+                    <LibraryBig className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">知识库</TooltipContent>
+              </Tooltip>
             </div>
           </TooltipProvider>
         ) : (
@@ -161,6 +173,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             >
               <ImageIcon className="size-4 shrink-0" />
               <span>图片</span>
+            </button>
+            <button
+              type="button"
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${isKbActive ? 'bg-sidebar-accent text-sidebar-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent'}`}
+              onClick={() => navigate('/knowledge-base')}
+            >
+              <LibraryBig className="size-4 shrink-0" />
+              <span>知识库</span>
             </button>
             <button
               type="button"
