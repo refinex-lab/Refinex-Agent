@@ -6,6 +6,7 @@ import {
   Bot,
   Check,
   CircleUserRound,
+  Cog,
   Database,
   Globe,
   Home,
@@ -46,6 +47,7 @@ import {
 import { AiSettingsPanel } from "./ai/AiSettingsPanel"
 import { AccountPanel } from "./AccountPanel"
 import { DataManagementPanel } from "./DataManagementPanel"
+import { GeneralPanel } from "./GeneralPanel"
 
 const data = {
   nav: [
@@ -61,6 +63,7 @@ const data = {
     { name: "关联账号", icon: Link },
     { name: "隐私与可见性", icon: Lock },
     { name: "账户", icon: CircleUserRound },
+    { name: "常规", icon: Cog },
     { name: "AI 配置", icon: Bot },
     { name: "数据管理", icon: Database },
     { name: "高级设置", icon: Settings },
@@ -126,6 +129,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
               {activeItem === "账户" ? (
                 <AccountPanel />
+              ) : activeItem === "常规" ? (
+                <GeneralPanel />
               ) : activeItem === "AI 配置" ? (
                 <AiSettingsPanel />
               ) : activeItem === "数据管理" ? (
