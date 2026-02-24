@@ -96,3 +96,13 @@ export function updateProfile(data: UpdateProfileParams) {
 export function changePassword(data: ChangePasswordParams) {
   return post<void>(`${PREFIX}/users/me/password/change`, data)
 }
+
+/** 重置密码参数（对应 UserPasswordResetRequest） */
+export interface ResetPasswordParams {
+  newPassword: string
+}
+
+/** 重置当前登录用户密码（无需旧密码） */
+export function resetPassword(data: ResetPasswordParams) {
+  return post<void>(`${PREFIX}/users/me/password/reset`, data)
+}

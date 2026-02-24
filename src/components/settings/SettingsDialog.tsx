@@ -5,6 +5,7 @@ import {
   Bell,
   Bot,
   Check,
+  CircleUserRound,
   Database,
   Globe,
   Home,
@@ -43,6 +44,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { AiSettingsPanel } from "./ai/AiSettingsPanel"
+import { AccountPanel } from "./AccountPanel"
 import { DataManagementPanel } from "./DataManagementPanel"
 
 const data = {
@@ -58,6 +60,7 @@ const data = {
     { name: "音频与视频", icon: Video },
     { name: "关联账号", icon: Link },
     { name: "隐私与可见性", icon: Lock },
+    { name: "账户", icon: CircleUserRound },
     { name: "AI 配置", icon: Bot },
     { name: "数据管理", icon: Database },
     { name: "高级设置", icon: Settings },
@@ -121,7 +124,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
-              {activeItem === "AI 配置" ? (
+              {activeItem === "账户" ? (
+                <AccountPanel />
+              ) : activeItem === "AI 配置" ? (
                 <AiSettingsPanel />
               ) : activeItem === "数据管理" ? (
                 <DataManagementPanel onCloseSettings={() => onOpenChange(false)} />
