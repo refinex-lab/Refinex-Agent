@@ -4,12 +4,14 @@ import { useChatStore } from '@/stores/chat'
 import { MainContent } from '@/components/layout/MainContent'
 import { ChatArea } from '@/components/chat/ChatArea'
 import { ChatInput } from '@/components/chat/ChatInput'
+import { ArchivedBanner } from '@/components/chat/ArchivedBanner'
 
 export function Component() {
   const placeholderMode = useConversationStore((s) => s.placeholderMode)
   const activeConversationId = useConversationStore((s) => s.activeConversationId)
   const loadConversation = useChatStore((s) => s.loadConversation)
   const clearChat = useChatStore((s) => s.clearChat)
+  const isArchived = useChatStore((s) => s.isArchived)
 
   useEffect(() => {
     if (activeConversationId) {
@@ -26,7 +28,7 @@ export function Component() {
   return (
     <>
       <ChatArea />
-      <ChatInput />
+      {isArchived ? <ArchivedBanner /> : <ChatInput />}
     </>
   )
 }

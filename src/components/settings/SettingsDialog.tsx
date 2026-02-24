@@ -5,6 +5,7 @@ import {
   Bell,
   Bot,
   Check,
+  Database,
   Globe,
   Home,
   Keyboard,
@@ -42,6 +43,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { AiSettingsPanel } from "./ai/AiSettingsPanel"
+import { DataManagementPanel } from "./DataManagementPanel"
 
 const data = {
   nav: [
@@ -57,6 +59,7 @@ const data = {
     { name: "关联账号", icon: Link },
     { name: "隐私与可见性", icon: Lock },
     { name: "AI 配置", icon: Bot },
+    { name: "数据管理", icon: Database },
     { name: "高级设置", icon: Settings },
   ],
 }
@@ -120,6 +123,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
               {activeItem === "AI 配置" ? (
                 <AiSettingsPanel />
+              ) : activeItem === "数据管理" ? (
+                <DataManagementPanel onCloseSettings={() => onOpenChange(false)} />
               ) : (
                 Array.from({ length: 10 }).map((_, i) => (
                   <div

@@ -15,6 +15,7 @@ interface ChatState {
   conversationId: string | null
   streamStatus: StreamStatus
   abortController: AbortController | null
+  isArchived: boolean
 
   // TTS
   ttsLoadingId: string | null
@@ -38,6 +39,7 @@ interface ChatActions {
   setKnowledgeBaseIds: (ids: number[]) => void
   setPromptTemplateId: (id: number | null) => void
   regenerateLastMessage: () => Promise<void>
+  unarchiveCurrentConversation: () => Promise<void>
 }
 
 type ChatStore = ChatState & ChatActions
@@ -49,6 +51,7 @@ const initialState: ChatState = {
   conversationId: null,
   streamStatus: 'idle',
   abortController: null,
+  isArchived: false,
   ttsLoadingId: null,
   ttsAudioUrl: null,
   ttsPlayingId: null,
@@ -252,6 +255,7 @@ export const useChatStore = create<ChatStore>()(
               streamStatus: 'idle',
               abortController: null,
               knowledgeBaseIds,
+              isArchived: detail.status === 2,
             },
             false,
             'loadConversation',
@@ -313,6 +317,21 @@ export const useChatStore = create<ChatStore>()(
           .filter((a) => a.type.startsWith('image'))
           .map((a) => a.url)
         await get().sendMessage(lastUserMsg.content, imageUrls)
+      },
+
+      async unarchiveCurrentConversation() {
+        const { conversationId } = get()
+        if (!conversationId) return
+        try {
+          const { aiApi } = await import('@/services')
+          await aiApi.toggleConversationArchive(conversationId)
+          set({ isArchived: false }, false, 'unarchive')
+          toast.success('已取消归档')
+          // 刷新对话列表
+          await useConversationStore.getState().fetchConversations(true)
+        } catch {
+          // 全局拦截器已处理
+        }
       },
     }),
     { name: 'ChatStore', enabled: import.meta.env.DEV },

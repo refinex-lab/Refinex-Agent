@@ -22,6 +22,7 @@ interface ConversationActions {
   deleteConversation: (id: string) => Promise<void>
   renameConversation: (id: string, title: string) => Promise<void>
   togglePin: (id: string) => Promise<void>
+  archiveConversation: (id: string) => Promise<void>
   setPlaceholderMode: (mode: 'image' | 'app' | null) => void
   refreshAfterStream: () => Promise<void>
 }
@@ -55,7 +56,7 @@ export const useConversationStore = create<ConversationStore>()(
         set(reset ? { loading: true } : { loadingMore: true }, false, 'fetchConversations/start')
         try {
           const { aiApi } = await import('@/services')
-          const data = await aiApi.listConversations({ currentPage: page, pageSize: PAGE_SIZE })
+          const data = await aiApi.listConversations({ currentPage: page, pageSize: PAGE_SIZE, status: 1 })
           const records = data.records ?? []
           const total = data.total ?? 0
           set({
@@ -121,6 +122,21 @@ export const useConversationStore = create<ConversationStore>()(
           // 置顶的排前面
           conversations.sort((a, b) => b.pinned - a.pinned)
           set({ conversations }, false, 'togglePin')
+        } catch {
+          // 全局拦截器已处理错误提示
+        }
+      },
+
+      async archiveConversation(id) {
+        try {
+          const { aiApi } = await import('@/services')
+          await aiApi.toggleConversationArchive(id)
+          const { conversations, activeConversationId } = get()
+          set({
+            conversations: conversations.filter((c) => c.conversationId !== id),
+            total: get().total - 1,
+            ...(activeConversationId === id ? { activeConversationId: null } : {}),
+          }, false, 'archiveConversation')
         } catch {
           // 全局拦截器已处理错误提示
         }

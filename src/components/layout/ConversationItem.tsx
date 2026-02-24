@@ -38,6 +38,7 @@ export function ConversationItem({ conversation, isActive, onSelect }: Conversat
   const renameConversation = useConversationStore((s) => s.renameConversation)
   const deleteConversation = useConversationStore((s) => s.deleteConversation)
   const togglePin = useConversationStore((s) => s.togglePin)
+  const archiveConversation = useConversationStore((s) => s.archiveConversation)
 
   const isPinned = conversation.pinned === 1
 
@@ -77,6 +78,11 @@ export function ConversationItem({ conversation, isActive, onSelect }: Conversat
   const handleTogglePin = async () => {
     await togglePin(conversation.conversationId)
     toast.success(isPinned ? '已取消置顶' : '已置顶')
+  }
+
+  const handleArchive = async () => {
+    await archiveConversation(conversation.conversationId)
+    toast.success('已归档', { description: '你可以在"设置"中查看归档的聊天' })
   }
 
   return (
@@ -151,10 +157,9 @@ export function ConversationItem({ conversation, isActive, onSelect }: Conversat
                   <Pin className="size-4" />
                   {isPinned ? '取消置顶' : '置顶聊天'}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2" disabled>
+                <DropdownMenuItem className="gap-2" onClick={handleArchive}>
                   <Archive className="size-4" />
                   归档
-                  <span className="ml-auto text-xs text-muted-foreground">即将推出</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="gap-2 text-destructive focus:text-destructive"

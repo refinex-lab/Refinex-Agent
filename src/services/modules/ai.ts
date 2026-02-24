@@ -448,6 +448,7 @@ export interface ChatMessage {
 export interface ConversationListQuery {
   currentPage?: number
   pageSize?: number
+  status?: number
 }
 
 export interface ChatRequest {
@@ -897,6 +898,21 @@ export function updateConversationTitle(conversationId: string, data: Conversati
 /** 切换对话置顶状态 */
 export function toggleConversationPin(conversationId: string) {
   return put<void>(`${PREFIX}/conversations/${conversationId}/pin`)
+}
+
+/** 切换对话归档状态 */
+export function toggleConversationArchive(conversationId: string) {
+  return put<void>(`${PREFIX}/conversations/${conversationId}/archive`)
+}
+
+/** 归档所有进行中的对话 */
+export function archiveAllConversations() {
+  return put<void>(`${PREFIX}/conversations/archive-all`)
+}
+
+/** 删除所有对话 */
+export function deleteAllConversations() {
+  return del<void>(`${PREFIX}/conversations/all`)
 }
 
 // ── KnowledgeBase ──
