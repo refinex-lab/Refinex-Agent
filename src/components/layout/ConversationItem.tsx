@@ -85,7 +85,7 @@ export function ConversationItem({ conversation, isActive, onSelect }: Conversat
         role="button"
         tabIndex={0}
         className={cn(
-          'group relative flex h-9 cursor-pointer items-center rounded-lg px-3 text-sm transition-colors',
+          'group relative flex h-9 min-w-0 cursor-pointer items-center rounded-lg px-3 text-sm transition-colors',
           isActive
             ? 'bg-sidebar-accent text-sidebar-foreground'
             : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50',
