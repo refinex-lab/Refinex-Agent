@@ -87,7 +87,7 @@ export function AssistantMessage({ message, isStreaming, isLast }: AssistantMess
 
       {/* Main content */}
       {message.content && (
-        <MessageResponse>{message.content}</MessageResponse>
+        <MessageResponse mode={isStreaming ? 'streaming' : 'static'}>{message.content}</MessageResponse>
       )}
 
       {/* Generated images */}

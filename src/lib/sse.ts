@@ -61,15 +61,18 @@ export async function fetchSSE(
         if (!frame.trim()) continue
 
         let eventName = 'message'
-        let data = ''
+        const dataLines: string[] = []
 
         for (const line of frame.split('\n')) {
           if (line.startsWith('event:')) {
             eventName = line.slice(6).trim()
           } else if (line.startsWith('data:')) {
-            data += line.slice(5)
+            dataLines.push(line.slice(5))
           }
         }
+
+        // SSE 规范：多行 data: 之间用 \n 连接
+        const data = dataLines.join('\n')
 
         if (eventName === 'done' || data === '[DONE]') {
           callbacks.onDone()
