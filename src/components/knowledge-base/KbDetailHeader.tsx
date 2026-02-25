@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { useKbStore } from '@/stores/knowledge-base'
+import { getKbIcon } from './kb-icons'
 
 interface KbDetailHeaderProps {
   kbId: number
@@ -16,6 +17,7 @@ export function KbDetailHeader({ kbId, onOpenSearch, onOpenSettings }: KbDetailH
   const navigate = useNavigate()
   const currentKb = useKbStore((s) => s.currentKb)
   const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
+  const KbIcon = getKbIcon(currentKb?.icon)
 
   const handleVectorizeAll = async () => {
     try {
@@ -34,6 +36,9 @@ export function KbDetailHeader({ kbId, onOpenSearch, onOpenSettings }: KbDetailH
       </Button>
       {currentKb ? (
         <>
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+            <KbIcon className="size-4 text-primary" />
+          </div>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-sm font-semibold">{currentKb.kbName}</h2>
             {currentKb.description && (

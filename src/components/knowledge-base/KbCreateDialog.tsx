@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import type { KnowledgeBase } from '@/services/modules/ai'
+import { KbIconPicker } from './KbIconPicker'
+import { DEFAULT_KB_ICON } from './kb-icons'
 
 interface KbCreateDialogProps {
   open: boolean
@@ -22,23 +24,27 @@ interface KbCreateDialogProps {
 
 export function KbCreateDialog({ open, onOpenChange, editKb, onCreated }: KbCreateDialogProps) {
   const isEdit = !!editKb
+  const [icon, setIcon] = useState(DEFAULT_KB_ICON)
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const handleOpenChange = (v: boolean) => {
-    if (v && editKb) {
+  // 当 Dialog 打开时，根据是否编辑模式同步表单状态
+  useEffect(() => {
+    if (!open) return
+    if (editKb) {
+      setIcon(editKb.icon || DEFAULT_KB_ICON)
       setName(editKb.kbName)
       setCode(editKb.kbCode)
       setDescription(editKb.description ?? '')
-    } else if (v) {
+    } else {
+      setIcon(DEFAULT_KB_ICON)
       setName('')
       setCode('')
       setDescription('')
     }
-    onOpenChange(v)
-  }
+  }, [open, editKb])
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -56,6 +62,7 @@ export function KbCreateDialog({ open, onOpenChange, editKb, onCreated }: KbCrea
         await aiApi.updateKnowledgeBase(editKb.id, {
           kbName: name.trim(),
           description: description.trim(),
+          icon,
         })
         toast.success('知识库已更新')
       } else {
@@ -63,6 +70,7 @@ export function KbCreateDialog({ open, onOpenChange, editKb, onCreated }: KbCrea
           kbCode: code.trim(),
           kbName: name.trim(),
           description: description.trim(),
+          icon,
         })
         toast.success('知识库已创建')
       }
@@ -76,12 +84,16 @@ export function KbCreateDialog({ open, onOpenChange, editKb, onCreated }: KbCrea
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? '编辑知识库' : '新建知识库'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>图标</Label>
+            <KbIconPicker value={icon} onChange={setIcon} />
+          </div>
           {!isEdit && (
             <div className="space-y-2">
               <Label htmlFor="kb-code">编码</Label>
