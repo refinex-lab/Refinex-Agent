@@ -21,6 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { toast } from 'sonner'
 import type { Document } from '@/services/modules/ai'
 import { exportDocument, isMarkdownDoc, type ExportFormat } from './export-document'
@@ -33,15 +35,34 @@ interface DocumentListItemProps {
   isSelected: boolean
   onSelect: () => void
   onRefresh: () => void
+  sortableId?: string
 }
 
-export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }: DocumentListItemProps) {
+export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh, sortableId }: DocumentListItemProps) {
   const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
   const [renaming, setRenaming] = useState(false)
   const [renameName, setRenameName] = useState('')
   const [submittingRename, setSubmittingRename] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const renameInputRef = useRef<HTMLInputElement>(null)
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: sortableId ?? `doc-${doc.id}`,
+    data: { type: 'DOCUMENT' as const, doc, folderId: doc.folderId || 0 },
+    disabled: renaming || !sortableId,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
 
   useEffect(() => {
     if (renaming) {
@@ -128,7 +149,7 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
 
   if (renaming) {
     return (
-      <div className="flex items-center gap-1 rounded-md bg-accent/50 px-2 py-1">
+      <div ref={setNodeRef} style={style} {...attributes} className="flex items-center gap-1 rounded-md bg-accent/50 px-2 py-1">
         <Input
           ref={renameInputRef}
           value={renameName}
@@ -163,9 +184,13 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
   return (
     <>
       <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...(renaming ? {} : listeners)}
         className={`group flex cursor-pointer items-center rounded-md py-1.5 text-sm transition-colors ${
           isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50'
-        }`}
+        } ${isDragging ? 'opacity-40' : ''}`}
         onClick={onSelect}
       >
         {/* px-2(8px) + chevron size-3.5(14px) + gap-1.5(6px) = 28px，与文件夹 Folder 图标对齐 */}
@@ -178,6 +203,7 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
               type="button"
               className="mr-1 shrink-0 rounded p-0.5 opacity-0 hover:bg-accent group-hover:opacity-100"
               onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               <MoreHorizontal className="size-3.5" />
             </button>

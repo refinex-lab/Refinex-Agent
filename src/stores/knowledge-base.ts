@@ -40,6 +40,9 @@ interface KbActions {
   setContentDirty: (dirty: boolean) => void
   fetchChunks: (kbId: number, docId: number) => Promise<void>
   checkEmbeddingModel: () => Promise<void>
+  reorderFolders: (orderedIds: number[]) => void
+  reorderDocuments: (folderId: number, orderedIds: number[]) => void
+  moveDocumentToFolder: (docId: number, toFolderId: number) => void
   reset: () => void
 }
 
@@ -180,6 +183,32 @@ export const useKbStore = create<KbStore>()(
         } catch {
           set({ hasEmbeddingModel: false }, false, 'checkEmbeddingModel/error')
         }
+      },
+
+      reorderFolders(orderedIds: number[]) {
+        const { folders } = get()
+        const map = new Map(folders.map((f) => [f.id, f]))
+        const reordered = orderedIds.map((id) => map.get(id)!).filter(Boolean)
+        set({ folders: reordered }, false, 'reorderFolders')
+      },
+
+      reorderDocuments(folderId: number, orderedIds: number[]) {
+        const { documents } = get()
+        const map = new Map(documents.map((d) => [d.id, d]))
+        const inContainer = orderedIds.map((id) => map.get(id)!).filter(Boolean)
+        const outside = documents.filter(
+          (d) => (d.folderId || 0) !== folderId,
+        )
+        set({ documents: [...outside, ...inContainer] }, false, 'reorderDocuments')
+      },
+
+      moveDocumentToFolder(docId: number, toFolderId: number) {
+        const { documents } = get()
+        set({
+          documents: documents.map((d) =>
+            d.id === docId ? { ...d, folderId: toFolderId } : d,
+          ),
+        }, false, 'moveDocumentToFolder')
       },
 
       reset() {
