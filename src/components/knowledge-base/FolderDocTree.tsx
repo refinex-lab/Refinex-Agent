@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { FolderPlus, FilePlus, Check, X, Search, Folder, FileText } from 'lucide-react'
+import type { Folder as FolderType } from '@/services/modules/ai'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -12,6 +13,18 @@ import { DocumentListItem } from './DocumentListItem'
 import { DocumentCreateDialog } from './DocumentCreateDialog'
 import { useTreeDnd, folderSortId, docSortId } from './use-tree-dnd'
 import { toast } from 'sonner'
+
+/** Build a map from parentId to direct child folders */
+function buildChildrenMap(folders: FolderType[]) {
+  const map = new Map<number, FolderType[]>()
+  for (const f of folders) {
+    const pid = f.parentId || 0
+    const list = map.get(pid)
+    if (list) list.push(f)
+    else map.set(pid, [f])
+  }
+  return map
+}
 
 interface FolderDocTreeProps {
   kbId: number
@@ -26,6 +39,11 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
   const [search, setSearch] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Record<number, boolean>>({})
   const newFolderInputRef = useRef<HTMLInputElement>(null)
+
+  // Subfolder creation state
+  const [creatingSubfolder, setCreatingSubfolder] = useState<{ parentId: number } | null>(null)
+  const [newSubfolderName, setNewSubfolderName] = useState('')
+  const [submittingSubfolder, setSubmittingSubfolder] = useState(false)
 
   const folders = useKbStore((s) => s.folders)
   const documents = useKbStore((s) => s.documents)
@@ -48,6 +66,15 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
     onDragEnd,
     onDragCancel,
   } = useTreeDnd(kbId)
+
+  // Build folder tree: parentId -> children
+  const childrenMap = useMemo(() => buildChildrenMap(folders), [folders])
+  const rootFolders = useMemo(() => childrenMap.get(0) ?? [], [childrenMap])
+
+  const getChildFolders = useCallback(
+    (parentId: number) => childrenMap.get(parentId) ?? [],
+    [childrenMap],
+  )
 
   // Default all folders to expanded
   useEffect(() => {
@@ -107,6 +134,41 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
     }
   }
 
+  // Subfolder creation handlers
+  const handleStartCreateSubfolder = useCallback((parentId: number) => {
+    setCreatingSubfolder({ parentId })
+    setNewSubfolderName('')
+    setExpandedFolders((prev) => ({ ...prev, [parentId]: true }))
+  }, [])
+
+  const handleCancelCreateSubfolder = useCallback(() => {
+    setCreatingSubfolder(null)
+    setNewSubfolderName('')
+  }, [])
+
+  const handleConfirmCreateSubfolder = useCallback(async () => {
+    if (!creatingSubfolder || !newSubfolderName.trim()) {
+      handleCancelCreateSubfolder()
+      return
+    }
+    setSubmittingSubfolder(true)
+    try {
+      const { aiApi } = await import('@/services')
+      await aiApi.createFolder(kbId, {
+        folderName: newSubfolderName.trim(),
+        parentId: creatingSubfolder.parentId,
+      })
+      toast.success('子文件夹已创建')
+      setCreatingSubfolder(null)
+      setNewSubfolderName('')
+      fetchFolders(kbId)
+    } catch {
+      // handled by interceptor
+    } finally {
+      setSubmittingSubfolder(false)
+    }
+  }, [creatingSubfolder, newSubfolderName, kbId, fetchFolders, handleCancelCreateSubfolder])
+
   const handleCreateDoc = (folderId?: number | null) => {
     setDocCreateFolderId(folderId ?? null)
     setDocCreateOpen(true)
@@ -126,8 +188,8 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
     return documents.filter((d) => d.docName.toLowerCase().includes(keyword))
   }, [documents, keyword, isSearching])
 
-  // Sortable IDs
-  const folderSortIds = useMemo(() => folders.map((f) => folderSortId(f.id)), [folders])
+  // Sortable IDs - only root-level folders
+  const folderSortIds = useMemo(() => rootFolders.map((f) => folderSortId(f.id)), [rootFolders])
   const rootDocSortIds = useMemo(() => rootDocs.map((d) => docSortId(d.id)), [rootDocs])
 
   const handleFolderOpenChange = useCallback((folderId: number, open: boolean) => {
@@ -201,7 +263,6 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
             onDragCancel={onDragCancel}
           >
             <div className="p-2">
-              {/* 新建文件夹 inline input */}
               {creatingFolder && (
                 <div className="mb-1 flex items-center gap-1 rounded-md bg-accent/50 px-2 py-1">
                   <Input
@@ -236,20 +297,34 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
               )}
 
               <SortableContext items={folderSortIds} strategy={verticalListSortingStrategy}>
-                {folders.map((folder) => (
+                {rootFolders.map((folder) => (
                   <FolderTreeItem
                     key={folder.id}
                     kbId={kbId}
                     folder={folder}
                     documents={getDocsForFolder(folder.id)}
+                    childFolders={getChildFolders(folder.id)}
+                    getChildFolders={getChildFolders}
+                    getDocsForFolder={getDocsForFolder}
                     selectedDocId={selectedDocId}
                     onSelectDoc={selectDocument}
-                    onCreateDoc={() => handleCreateDoc(folder.id)}
+                    onCreateDocInFolder={handleCreateDoc}
                     onRefresh={() => { fetchFolders(kbId); fetchDocuments(kbId) }}
                     sortableId={folderSortId(folder.id)}
                     open={expandedFolders[folder.id] ?? true}
                     onOpenChange={(open) => handleFolderOpenChange(folder.id, open)}
                     isDropTarget={dropTarget?.folderId === folder.id}
+                    expandedFolders={expandedFolders}
+                    onFolderOpenChange={handleFolderOpenChange}
+                    dropTarget={dropTarget}
+                    onStartCreateSubfolder={handleStartCreateSubfolder}
+                    creatingSubfolderParentId={creatingSubfolder?.parentId ?? null}
+                    subfolderName={newSubfolderName}
+                    onSubfolderNameChange={setNewSubfolderName}
+                    onConfirmSubfolder={handleConfirmCreateSubfolder}
+                    onCancelSubfolder={handleCancelCreateSubfolder}
+                    submittingSubfolder={submittingSubfolder}
+                    depth={0}
                   />
                 ))}
               </SortableContext>
@@ -268,7 +343,7 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
                 ))}
               </SortableContext>
 
-              {!creatingFolder && folders.length === 0 && rootDocs.length === 0 && (
+              {!creatingFolder && rootFolders.length === 0 && rootDocs.length === 0 && (
                 <p className="py-8 text-center text-xs text-muted-foreground">
                   暂无内容，点击上方按钮创建
                 </p>

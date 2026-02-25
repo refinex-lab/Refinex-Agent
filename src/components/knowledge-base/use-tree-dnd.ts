@@ -133,16 +133,34 @@ export function useTreeDnd(kbId: number) {
       const folders = useKbStore.getState().folders
       const documents = useKbStore.getState().documents
 
-      // ── Case 1: Folder reorder ──
+      // ── Case 1: Folder reorder (same parentId only) ──
       if (activeData.type === 'FOLDER' && overData.type === 'FOLDER') {
-        const ids = folders.map((f) => f.id)
-        const oldIdx = ids.indexOf(parseId(String(active.id)).id)
-        const newIdx = ids.indexOf(parseId(String(over.id)).id)
+        const activeFolderId = parseId(String(active.id)).id
+        const overFolderId = parseId(String(over.id)).id
+        const activeFolder = folders.find((f) => f.id === activeFolderId)
+        const overFolder = folders.find((f) => f.id === overFolderId)
+        if (!activeFolder || !overFolder) return
+        // Only allow reorder among siblings (same parentId)
+        const activeParent = activeFolder.parentId || 0
+        const overParent = overFolder.parentId || 0
+        if (activeParent !== overParent) return
+        // Filter siblings, reorder within that subset, then rebuild full list
+        const siblings = folders.filter((f) => (f.parentId || 0) === activeParent)
+        const siblingIds = siblings.map((f) => f.id)
+        const oldIdx = siblingIds.indexOf(activeFolderId)
+        const newIdx = siblingIds.indexOf(overFolderId)
         if (oldIdx === -1 || newIdx === -1) return
-        const newOrder = arrayMove(ids, oldIdx, newIdx)
+        const newSiblingOrder = arrayMove(siblingIds, oldIdx, newIdx)
+        // Rebuild full folder order: replace siblings in-place
+        const siblingSet = new Set(siblingIds)
+        let sibIdx = 0
+        const newOrder = folders.map((f) => {
+          if (siblingSet.has(f.id)) return newSiblingOrder[sibIdx++]
+          return f.id
+        })
         reorderFolders(newOrder)
 
-        const sortItems = newOrder.map((id, i) => ({
+        const sortItems = newSiblingOrder.map((id, i) => ({
           id,
           type: 'FOLDER' as const,
           sort: i * 1000,
