@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { Save, ExternalLink, FileText, Download, FileDown, FileType, FileImage } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Save, ExternalLink, FileText, Download, FileDown, FileType, FileImage, Pencil, Eye } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -27,14 +27,14 @@ interface DocumentPanelProps {
 const MARKDOWN_TYPES = ['MARKDOWN', 'MD', 'TXT']
 const TEXT_ONLY_TYPES = new Set(['MD', 'MARKDOWN', 'TXT', 'JSON'])
 
-function SaveButton({ kbId, docId }: { kbId: number; docId: number }) {
+function SaveButton({ kbId, docId, editing }: { kbId: number; docId: number; editing: boolean }) {
   const [loading, getEditor] = useInstance()
   const contentDirty = useKbStore((s) => s.contentDirty)
   const setContentDirty = useKbStore((s) => s.setContentDirty)
   const savingRef = useRef(false)
 
   const handleSave = useCallback(async () => {
-    if (savingRef.current || loading) return
+    if (savingRef.current || loading || !editing) return
     const editor = getEditor()
     if (!editor) return
 
@@ -50,7 +50,7 @@ function SaveButton({ kbId, docId }: { kbId: number; docId: number }) {
     } finally {
       savingRef.current = false
     }
-  }, [loading, getEditor, kbId, docId, setContentDirty])
+  }, [loading, getEditor, kbId, docId, setContentDirty, editing])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -68,7 +68,7 @@ function SaveButton({ kbId, docId }: { kbId: number; docId: number }) {
       variant="ghost"
       size="sm"
       className="h-7"
-      disabled={!contentDirty}
+      disabled={!editing || !contentDirty}
       onClick={handleSave}
     >
       <Save className="mr-1.5 size-3.5" />
@@ -85,6 +85,7 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
   const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
   const docContent = useKbStore((s) => s.docContent)
   const editorContainerRef = useRef<HTMLDivElement>(null)
+  const [editing, setEditing] = useState(false)
 
   const doc = documents.find((d) => d.id === selectedDocId)
   const isMarkdown = doc && MARKDOWN_TYPES.includes(doc.docType?.toUpperCase())
@@ -95,6 +96,11 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
     const title = doc.docName?.replace(/\.[^.]+$/, '') || '文档'
     exportDocument(format, docContent ?? '', editorContainerRef.current, title)
   }, [doc, docContent])
+
+  // Reset to reading mode when switching documents
+  useEffect(() => {
+    setEditing(false)
+  }, [selectedDocId])
 
   useEffect(() => {
     if (selectedDocId && kbId) {
@@ -135,7 +141,27 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
           {hasEmbeddingModel && <TabsTrigger value="chunks">切片</TabsTrigger>}
         </TabsList>
         <div className="ml-auto flex items-center gap-1">
-          {isMarkdown && <SaveButton kbId={kbId} docId={doc.id} />}
+          {isMarkdown && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7"
+              onClick={() => setEditing((v) => !v)}
+            >
+              {editing ? (
+                <>
+                  <Eye className="mr-1.5 size-3.5" />
+                  完成
+                </>
+              ) : (
+                <>
+                  <Pencil className="mr-1.5 size-3.5" />
+                  编辑
+                </>
+              )}
+            </Button>
+          )}
+          {isMarkdown && <SaveButton kbId={kbId} docId={doc.id} editing={editing} />}
           {isMarkdown ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -180,7 +206,7 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
       )}
       <TabsContent value="content" className="flex-1 overflow-hidden m-0">
         {isMarkdown ? (
-          <DocumentEditor doc={doc} editorContainerRef={editorContainerRef} />
+          <DocumentEditor doc={doc} editing={editing} editorContainerRef={editorContainerRef} />
         ) : (
           <DocumentViewer />
         )}

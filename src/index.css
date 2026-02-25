@@ -401,3 +401,24 @@
   background-color: color-mix(in srgb, var(--primary), transparent 85%);
   border-radius: 2px;
 }
+
+/* === 只读模式：隐藏编辑态 UI 元素 === */
+.milkdown-editor .milkdown .ProseMirror[contenteditable="false"] {
+  cursor: default;
+  caret-color: transparent;
+}
+
+/* 只读模式下隐藏 placeholder 提示文字 */
+.milkdown-editor .milkdown .ProseMirror[contenteditable="false"] .crepe-placeholder {
+  display: none;
+}
+
+/* 只读模式下代码块语言选择器不可交互 */
+.milkdown-editor .milkdown .ProseMirror[contenteditable="false"] .milkdown-code-block .tools .language-button {
+  pointer-events: none;
+}
+
+/* 只读模式下隐藏代码块操作按钮组（编辑相关） */
+.milkdown-editor .milkdown .ProseMirror[contenteditable="false"] .milkdown-code-block .tools .tools-button-group {
+  display: none;
+}
