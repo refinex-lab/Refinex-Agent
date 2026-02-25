@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { Crepe, CrepeFeature } from '@milkdown/crepe'
-import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
+import { Milkdown, useEditor } from '@milkdown/react'
 import { toast } from 'sonner'
 import '@milkdown/crepe/theme/common/style.css'
 import { useKbStore } from '@/stores/knowledge-base'
@@ -108,8 +108,10 @@ export function DocumentEditor({ doc: _doc, editorContainerRef }: DocumentEditor
   const docContent = useKbStore((s) => s.docContent)
   const setContentDirty = useKbStore((s) => s.setContentDirty)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const latestMarkdownRef = useRef(docContent ?? '')
 
-  const handleChange = useCallback((_md: string) => {
+  const handleChange = useCallback((md: string) => {
+    latestMarkdownRef.current = md
     setContentDirty(true)
   }, [setContentDirty])
 
@@ -117,9 +119,7 @@ export function DocumentEditor({ doc: _doc, editorContainerRef }: DocumentEditor
     <div className="flex h-full">
       <div ref={scrollRef} className="flex-1 min-w-0 overflow-auto">
         <div ref={editorContainerRef} className="milkdown-editor max-w-none p-4">
-          <MilkdownProvider>
-            <CrepeEditor defaultValue={docContent ?? ''} onChange={handleChange} />
-          </MilkdownProvider>
+          <CrepeEditor defaultValue={docContent ?? ''} onChange={handleChange} />
         </div>
       </div>
       <MarkdownToc markdown={docContent ?? ''} scrollRef={scrollRef} />
