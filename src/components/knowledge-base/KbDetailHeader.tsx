@@ -15,6 +15,7 @@ interface KbDetailHeaderProps {
 export function KbDetailHeader({ kbId, onOpenSearch, onOpenSettings }: KbDetailHeaderProps) {
   const navigate = useNavigate()
   const currentKb = useKbStore((s) => s.currentKb)
+  const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
 
   const handleVectorizeAll = async () => {
     try {
@@ -40,23 +41,27 @@ export function KbDetailHeader({ kbId, onOpenSearch, onOpenSettings }: KbDetailH
             )}
           </div>
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={handleVectorizeAll}>
-                  <Zap className="mr-1.5 size-3.5" />
-                  向量化
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>向量化全部文档</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" className="size-8" onClick={onOpenSearch}>
-                  <Search className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>RAG 搜索测试</TooltipContent>
-            </Tooltip>
+            {hasEmbeddingModel && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={handleVectorizeAll}>
+                    <Zap className="mr-1.5 size-3.5" />
+                    向量化
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>向量化全部文档</TooltipContent>
+              </Tooltip>
+            )}
+            {hasEmbeddingModel && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" className="size-8" onClick={onOpenSearch}>
+                    <Search className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>RAG 搜索测试</TooltipContent>
+              </Tooltip>
+            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" className="size-8" onClick={onOpenSettings}>

@@ -16,10 +16,12 @@ export function KbListPage() {
   const knowledgeBases = useKbStore((s) => s.knowledgeBases)
   const kbLoading = useKbStore((s) => s.kbLoading)
   const fetchKnowledgeBases = useKbStore((s) => s.fetchKnowledgeBases)
+  const checkEmbeddingModel = useKbStore((s) => s.checkEmbeddingModel)
 
   useEffect(() => {
     fetchKnowledgeBases()
-  }, [fetchKnowledgeBases])
+    checkEmbeddingModel()
+  }, [fetchKnowledgeBases, checkEmbeddingModel])
 
   const filtered = search.trim()
     ? knowledgeBases.filter((kb) =>

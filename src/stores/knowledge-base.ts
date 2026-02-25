@@ -24,6 +24,8 @@ interface KbState {
   contentDirty: boolean
   chunks: DocumentChunk[]
   chunksLoading: boolean
+  /** 当前企业是否授权了嵌入模型 */
+  hasEmbeddingModel: boolean
 }
 
 interface KbActions {
@@ -37,6 +39,7 @@ interface KbActions {
   setDocContent: (content: string) => void
   setContentDirty: (dirty: boolean) => void
   fetchChunks: (kbId: number, docId: number) => Promise<void>
+  checkEmbeddingModel: () => Promise<void>
   reset: () => void
 }
 
@@ -59,6 +62,7 @@ const initialState: KbState = {
   contentDirty: false,
   chunks: [],
   chunksLoading: false,
+  hasEmbeddingModel: false,
 }
 
 // ── Store ───────────────────────────────────────────────
@@ -165,6 +169,16 @@ export const useKbStore = create<KbStore>()(
           set({ chunks, chunksLoading: false }, false, 'fetchChunks/success')
         } catch {
           set({ chunksLoading: false }, false, 'fetchChunks/error')
+        }
+      },
+
+      async checkEmbeddingModel() {
+        try {
+          const { aiApi } = await import('@/services')
+          const models = await aiApi.listProvisionsByModelType(2)
+          set({ hasEmbeddingModel: models.length > 0 }, false, 'checkEmbeddingModel')
+        } catch {
+          set({ hasEmbeddingModel: false }, false, 'checkEmbeddingModel/error')
         }
       },
 

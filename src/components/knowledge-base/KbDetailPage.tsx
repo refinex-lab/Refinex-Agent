@@ -15,11 +15,13 @@ export function KbDetailPage({ kbId }: KbDetailPageProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const loadKb = useKbStore((s) => s.loadKb)
   const reset = useKbStore((s) => s.reset)
+  const checkEmbeddingModel = useKbStore((s) => s.checkEmbeddingModel)
 
   useEffect(() => {
     loadKb(kbId)
+    checkEmbeddingModel()
     return () => reset()
-  }, [kbId, loadKb, reset])
+  }, [kbId, loadKb, checkEmbeddingModel, reset])
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

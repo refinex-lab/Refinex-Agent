@@ -21,6 +21,8 @@ import {
 import { toast } from 'sonner'
 import type { Document } from '@/services/modules/ai'
 
+import { useKbStore } from '@/stores/knowledge-base'
+
 interface DocumentListItemProps {
   kbId: number
   doc: Document
@@ -30,6 +32,7 @@ interface DocumentListItemProps {
 }
 
 export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }: DocumentListItemProps) {
+  const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
   const [renaming, setRenaming] = useState(false)
   const [renameName, setRenameName] = useState('')
   const [submittingRename, setSubmittingRename] = useState(false)
@@ -150,10 +153,10 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
         }`}
         onClick={onSelect}
       >
-        {/* 左侧留出与文件夹 chevron 等宽的空间，让 FileText 图标与 Folder 图标对齐 */}
-        <span className="w-3.5 shrink-0" />
-        <span className="mx-1.5 shrink-0"><FileText className="size-3.5 text-muted-foreground" /></span>
-        <span className="flex-1 truncate">{doc.docName}</span>
+        {/* px-2(8px) + chevron size-3.5(14px) + gap-1.5(6px) = 28px，与文件夹 Folder 图标对齐 */}
+        <span className="shrink-0" style={{ width: 28 }} />
+        <FileText className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="ml-1.5 flex-1 truncate">{doc.docName}</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -165,17 +168,19 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={handleVectorize}>
-              <Zap className="mr-2 size-4" />
-              向量化
-            </DropdownMenuItem>
-            {doc.vectorStatus === 2 && (
+            {hasEmbeddingModel && (
+              <DropdownMenuItem onClick={handleVectorize}>
+                <Zap className="mr-2 size-4" />
+                向量化
+              </DropdownMenuItem>
+            )}
+            {hasEmbeddingModel && doc.vectorStatus === 2 && (
               <DropdownMenuItem onClick={handleDevectorize}>
                 <ZapOff className="mr-2 size-4" />
                 移除向量
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
+            {hasEmbeddingModel && <DropdownMenuSeparator />}
             <DropdownMenuItem onClick={handleStartRename}>
               <Pencil className="mr-2 size-4" />
               重命名

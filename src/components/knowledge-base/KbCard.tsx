@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import type { KnowledgeBase } from '@/services/modules/ai'
+import { useKbStore } from '@/stores/knowledge-base'
 import { KbCreateDialog } from './KbCreateDialog'
 
 interface KbCardProps {
@@ -20,6 +21,7 @@ interface KbCardProps {
 
 export function KbCard({ kb, onClick, onRefresh }: KbCardProps) {
   const [editOpen, setEditOpen] = useState(false)
+  const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -75,7 +77,7 @@ export function KbCard({ kb, onClick, onRefresh }: KbCardProps) {
             <FileText className="mr-1 size-3" />
             {kb.docCount ?? 0} 篇文档
           </Badge>
-          {kb.vectorized === 1 && (
+          {hasEmbeddingModel && kb.vectorized === 1 && (
             <Badge variant="outline" className="text-xs">已向量化</Badge>
           )}
         </div>

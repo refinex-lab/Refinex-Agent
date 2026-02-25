@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import { FolderPlus, FilePlus, Check, X } from 'lucide-react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { FolderPlus, FilePlus, Check, X, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -20,6 +20,7 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
   const [creatingFolder, setCreatingFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [submittingFolder, setSubmittingFolder] = useState(false)
+  const [search, setSearch] = useState('')
   const newFolderInputRef = useRef<HTMLInputElement>(null)
 
   const folders = useKbStore((s) => s.folders)
@@ -77,6 +78,15 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
   const rootDocs = documents.filter((d) => !d.folderId || d.folderId === 0)
   const getDocsForFolder = (folderId: number) => documents.filter((d) => d.folderId === folderId)
 
+  const keyword = search.trim().toLowerCase()
+  const isSearching = keyword.length > 0
+
+  // 搜索时：扁平展示所有匹配文档，忽略目录结构
+  const searchResults = useMemo(() => {
+    if (!isSearching) return []
+    return documents.filter((d) => d.docName.toLowerCase().includes(keyword))
+  }, [documents, keyword, isSearching])
+
   return (
     <div className="flex h-full flex-col">
       <div className="grid grid-cols-2 border-b">
@@ -100,10 +110,39 @@ export function FolderDocTree({ kbId }: FolderDocTreeProps) {
         </Button>
       </div>
 
+      <div className="relative border-b px-2 py-1.5">
+        <Search className="absolute left-4 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="搜索文档..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="h-7 pl-7 text-xs"
+        />
+      </div>
+
       <ScrollArea className="flex-1">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Spinner className="size-4" />
+          </div>
+        ) : isSearching ? (
+          <div className="p-2">
+            {searchResults.length > 0 ? (
+              searchResults.map((doc) => (
+                <DocumentListItem
+                  key={doc.id}
+                  kbId={kbId}
+                  doc={doc}
+                  isSelected={selectedDocId === doc.id}
+                  onSelect={() => selectDocument(doc.id)}
+                  onRefresh={() => fetchDocuments(kbId)}
+                />
+              ))
+            ) : (
+              <p className="py-8 text-center text-xs text-muted-foreground">
+                未找到匹配的文档
+              </p>
+            )}
           </div>
         ) : (
           <div className="p-2">
