@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { Save, ExternalLink, FileText } from 'lucide-react'
+import { Save, ExternalLink, FileText, Download, FileDown, FileType, FileImage } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { MilkdownProvider, useInstance } from '@milkdown/react'
 import { getMarkdown } from '@milkdown/kit/utils'
 import { toast } from 'sonner'
@@ -12,6 +18,7 @@ import { DocumentEditor } from './DocumentEditor'
 import { DocumentViewer } from './DocumentViewer'
 import { DocumentChunksPanel } from './DocumentChunksPanel'
 import { FilePreviewRouter } from './preview/FilePreviewRouter'
+import { exportDocument, type ExportFormat } from './export-document'
 
 interface DocumentPanelProps {
   kbId: number
@@ -76,10 +83,18 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
   const contentLoading = useKbStore((s) => s.contentLoading)
   const loadDocContent = useKbStore((s) => s.loadDocContent)
   const hasEmbeddingModel = useKbStore((s) => s.hasEmbeddingModel)
+  const docContent = useKbStore((s) => s.docContent)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
 
   const doc = documents.find((d) => d.id === selectedDocId)
   const isMarkdown = doc && MARKDOWN_TYPES.includes(doc.docType?.toUpperCase())
   const showPreviewTab = doc && !!doc.fileUrl && !TEXT_ONLY_TYPES.has(doc.docType?.toUpperCase())
+
+  const handleExport = useCallback((format: ExportFormat) => {
+    if (!doc) return
+    const title = doc.docName?.replace(/\.[^.]+$/, '') || '文档'
+    exportDocument(format, docContent ?? '', editorContainerRef.current, title)
+  }, [doc, docContent])
 
   useEffect(() => {
     if (selectedDocId && kbId) {
@@ -121,7 +136,34 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
         </TabsList>
         <div className="ml-auto flex items-center gap-1">
           {isMarkdown && <SaveButton kbId={kbId} docId={doc.id} />}
-          {doc.fileUrl && (
+          {isMarkdown ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7">
+                  <Download className="mr-1.5 size-3.5" />
+                  导出
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('md')}>
+                  <FileDown className="mr-2 size-4" />
+                  Markdown (.md)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('html')}>
+                  <FileType className="mr-2 size-4" />
+                  HTML (.html)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  <FileImage className="mr-2 size-4" />
+                  PDF (.pdf)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('docx')}>
+                  <FileText className="mr-2 size-4" />
+                  Word (.docx)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : doc.fileUrl && (
             <Button variant="ghost" size="sm" className="h-7" asChild>
               <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-1.5 size-3.5" />
@@ -138,7 +180,7 @@ function DocumentPanelInner({ kbId }: DocumentPanelProps) {
       )}
       <TabsContent value="content" className="flex-1 overflow-hidden m-0">
         {isMarkdown ? (
-          <DocumentEditor doc={doc} />
+          <DocumentEditor doc={doc} editorContainerRef={editorContainerRef} />
         ) : (
           <DocumentViewer />
         )}

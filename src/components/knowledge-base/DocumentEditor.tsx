@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, type RefObject } from 'react'
 import { Milkdown, useEditor } from '@milkdown/react'
 import { Editor, rootCtx, defaultValueCtx } from '@milkdown/kit/core'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
@@ -10,6 +10,7 @@ import type { Document } from '@/services/modules/ai'
 
 interface DocumentEditorProps {
   doc: Document
+  editorContainerRef?: RefObject<HTMLDivElement | null>
 }
 
 function MilkdownInner({ defaultValue, onChange }: { defaultValue: string; onChange: (md: string) => void }) {
@@ -35,7 +36,7 @@ function MilkdownInner({ defaultValue, onChange }: { defaultValue: string; onCha
   return <Milkdown />
 }
 
-export function DocumentEditor({ doc: _doc }: DocumentEditorProps) {
+export function DocumentEditor({ doc: _doc, editorContainerRef }: DocumentEditorProps) {
   const docContent = useKbStore((s) => s.docContent)
   const setContentDirty = useKbStore((s) => s.setContentDirty)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -47,7 +48,7 @@ export function DocumentEditor({ doc: _doc }: DocumentEditorProps) {
   return (
     <div className="flex h-full">
       <div ref={scrollRef} className="flex-1 min-w-0 overflow-auto">
-        <div className="milkdown-editor max-w-none p-4">
+        <div ref={editorContainerRef} className="milkdown-editor max-w-none p-4">
           <MilkdownInner defaultValue={docContent ?? ''} onChange={handleChange} />
         </div>
       </div>

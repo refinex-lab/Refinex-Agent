@@ -89,7 +89,7 @@ export function DocumentCreateDialog({ kbId, folderId, open, onOpenChange, onCre
               <Label htmlFor="doc-name">文档名称</Label>
               <Input
                 id="doc-name"
-                placeholder="例如：产品介绍.md"
+                placeholder="例如：产品介绍（默认 .md 格式）"
                 value={docName}
                 onChange={(e) => setDocName(e.target.value)}
               />

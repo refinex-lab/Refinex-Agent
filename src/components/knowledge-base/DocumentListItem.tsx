@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
-import { FileText, MoreHorizontal, Pencil, Trash2, Zap, ZapOff, Check, X } from 'lucide-react'
+import { FileText, MoreHorizontal, Pencil, Trash2, Zap, ZapOff, Check, X, Download, FileDown, FileType, FileImage } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -20,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import type { Document } from '@/services/modules/ai'
+import { exportDocument, isMarkdownDoc, type ExportFormat } from './export-document'
 
 import { useKbStore } from '@/stores/knowledge-base'
 
@@ -111,6 +115,17 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
     }
   }
 
+  const handleExport = async (format: ExportFormat) => {
+    try {
+      const { aiApi } = await import('@/services')
+      const content = await aiApi.getDocumentContent(kbId, doc.id)
+      const title = doc.docName?.replace(/\.[^.]+$/, '') || '文档'
+      await exportDocument(format, content ?? '', null, title)
+    } catch {
+      // handled by interceptor
+    }
+  }
+
   if (renaming) {
     return (
       <div className="flex items-center gap-1 rounded-md bg-accent/50 px-2 py-1">
@@ -181,6 +196,35 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
               </DropdownMenuItem>
             )}
             {hasEmbeddingModel && <DropdownMenuSeparator />}
+            {isMarkdownDoc(doc.docType) && (
+              <>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Download className="mr-2 size-4" />
+                    导出
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => handleExport('md')}>
+                      <FileDown className="mr-2 size-4" />
+                      Markdown
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('html')}>
+                      <FileType className="mr-2 size-4" />
+                      HTML
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      <FileImage className="mr-2 size-4" />
+                      PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('docx')}>
+                      <FileText className="mr-2 size-4" />
+                      Word
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleStartRename}>
               <Pencil className="mr-2 size-4" />
               重命名
