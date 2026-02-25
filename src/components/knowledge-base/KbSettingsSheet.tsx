@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -11,6 +18,7 @@ import {
 } from '@/components/ui/sheet'
 import { toast } from 'sonner'
 import { useKbStore } from '@/stores/knowledge-base'
+import type { ModelProvision } from '@/services/modules/ai'
 
 interface KbSettingsSheetProps {
   kbId: number
@@ -22,18 +30,38 @@ export function KbSettingsSheet({ kbId, open, onOpenChange }: KbSettingsSheetPro
   const currentKb = useKbStore((s) => s.currentKb)
   const loadKb = useKbStore((s) => s.loadKb)
 
+  const [embeddingModels, setEmbeddingModels] = useState<ModelProvision[]>([])
+  const [modelsLoading, setModelsLoading] = useState(false)
   const [embeddingModelId, setEmbeddingModelId] = useState<number>(0)
   const [chunkSize, setChunkSize] = useState<number>(500)
   const [chunkOverlap, setChunkOverlap] = useState<number>(50)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (currentKb && open) {
-      setEmbeddingModelId(currentKb.embeddingModelId ?? 0)
+    if (!open) return
+
+    // 加载嵌入模型列表（modelType=2 表示嵌入模型）
+    setModelsLoading(true)
+    import('@/services').then(({ aiApi }) => {
+      aiApi.listProvisionsByModelType(2).then((models) => {
+        setEmbeddingModels(models)
+
+        // 初始化选中值
+        if (currentKb?.embeddingModelId) {
+          setEmbeddingModelId(currentKb.embeddingModelId)
+        } else {
+          // 没有设置过：选默认模型，否则选第一个
+          const defaultModel = models.find((m) => m.isDefault === 1)
+          setEmbeddingModelId(defaultModel?.id ?? models[0]?.id ?? 0)
+        }
+      }).finally(() => setModelsLoading(false))
+    })
+
+    if (currentKb) {
       setChunkSize(currentKb.chunkSize ?? 500)
       setChunkOverlap(currentKb.chunkOverlap ?? 50)
     }
-  }, [currentKb, open])
+  }, [open, currentKb])
 
   const handleSave = async () => {
     if (!currentKb) return
@@ -62,15 +90,42 @@ export function KbSettingsSheet({ kbId, open, onOpenChange }: KbSettingsSheetPro
         <SheetHeader>
           <SheetTitle>知识库设置</SheetTitle>
         </SheetHeader>
-        <div className="space-y-6 py-6">
+        <div className="space-y-6 px-4 py-6">
           <div className="space-y-2">
-            <Label>嵌入模型 ID</Label>
-            <Input
-              type="number"
-              value={embeddingModelId}
-              onChange={(e) => setEmbeddingModelId(Number(e.target.value))}
-              placeholder="嵌入模型 ID"
-            />
+            <Label>嵌入模型</Label>
+            {modelsLoading ? (
+              <div className="h-9 animate-pulse rounded-md bg-muted" />
+            ) : embeddingModels.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                当前企业未授权任何嵌入模型，请联系管理员开通
+              </p>
+            ) : (
+              <Select
+                value={embeddingModelId ? String(embeddingModelId) : undefined}
+                onValueChange={(v) => setEmbeddingModelId(Number(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="选择嵌入模型" />
+                </SelectTrigger>
+                <SelectContent>
+                  {embeddingModels.map((m) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={`/images/ai-providers/${m.providerCode}.svg`}
+                          alt={m.providerCode}
+                          className="size-4 shrink-0"
+                        />
+                        <span>{m.modelName}</span>
+                        {m.isDefault === 1 && (
+                          <span className="text-xs text-muted-foreground">(默认)</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <p className="text-xs text-muted-foreground">
               用于文档向量化的嵌入模型
             </p>
@@ -102,7 +157,7 @@ export function KbSettingsSheet({ kbId, open, onOpenChange }: KbSettingsSheetPro
             </p>
           </div>
         </div>
-        <SheetFooter>
+        <SheetFooter className="px-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={handleSave} disabled={submitting}>
             {submitting ? '保存中...' : '保存'}

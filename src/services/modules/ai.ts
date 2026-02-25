@@ -740,6 +740,11 @@ export function deleteModelProvision(provisionId: number) {
   return del<void>(`${PREFIX}/model-provisions/${provisionId}`)
 }
 
+/** 查询租户指定模型类型的全部已启用开通列表 */
+export function listProvisionsByModelType(modelType: number) {
+  return get<ModelProvision[]>(`${PREFIX}/model-provisions/by-type/${modelType}`)
+}
+
 // ── PromptTemplate ──
 
 /** 查询Prompt模板分页列表 */

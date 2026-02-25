@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FileText, MoreHorizontal, Pencil, Trash2, Zap, ZapOff, Check, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,13 +21,6 @@ import {
 import { toast } from 'sonner'
 import type { Document } from '@/services/modules/ai'
 
-const VECTOR_STATUS_MAP: Record<number, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-  0: { label: '未向量化', variant: 'outline' },
-  1: { label: '向量化中', variant: 'secondary' },
-  2: { label: '已向量化', variant: 'default' },
-  3: { label: '向量化失败', variant: 'destructive' },
-}
-
 interface DocumentListItemProps {
   kbId: number
   doc: Document
@@ -38,7 +30,6 @@ interface DocumentListItemProps {
 }
 
 export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }: DocumentListItemProps) {
-  const vectorInfo = VECTOR_STATUS_MAP[doc.vectorStatus] ?? VECTOR_STATUS_MAP[0]
   const [renaming, setRenaming] = useState(false)
   const [renameName, setRenameName] = useState('')
   const [submittingRename, setSubmittingRename] = useState(false)
@@ -163,9 +154,6 @@ export function DocumentListItem({ kbId, doc, isSelected, onSelect, onRefresh }:
         <span className="w-3.5 shrink-0" />
         <span className="mx-1.5 shrink-0"><FileText className="size-3.5 text-muted-foreground" /></span>
         <span className="flex-1 truncate">{doc.docName}</span>
-        <Badge variant={vectorInfo.variant} className="mx-1 h-4 shrink-0 px-1 text-[10px]">
-          {vectorInfo.label}
-        </Badge>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
