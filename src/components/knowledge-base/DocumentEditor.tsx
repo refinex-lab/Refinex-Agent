@@ -43,7 +43,7 @@ export function DocumentEditor({ doc: _doc }: DocumentEditorProps) {
   }, [setContentDirty])
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto">
+    <div className="h-full overflow-auto">
       <div className="milkdown-editor max-w-none p-4">
         <MilkdownInner defaultValue={docContent ?? ''} onChange={handleChange} />
       </div>
