@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @source "../node_modules/streamdown/dist/*.js";
 @import "shadcn/tailwind.css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -146,128 +145,259 @@
   }
 }
 
-/* Milkdown 编辑器 WYSIWYG 样式 */
-.milkdown-editor .ProseMirror {
-  outline: none;
+/* Milkdown Crepe 编辑器 — 将 Crepe 主题变量映射到项目设计 token */
+.milkdown-editor .milkdown {
+  --crepe-color-background: var(--background);
+  --crepe-color-on-background: var(--foreground);
+  --crepe-color-surface: var(--popover);
+  --crepe-color-surface-low: var(--popover);
+  --crepe-color-on-surface: var(--foreground);
+  --crepe-color-on-surface-variant: var(--muted-foreground);
+  --crepe-color-outline: var(--muted-foreground);
+  --crepe-color-primary: var(--primary);
+  --crepe-color-secondary: var(--secondary);
+  --crepe-color-on-secondary: var(--secondary-foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--background);
+  --crepe-color-inline-code: var(--foreground);
+  --crepe-color-error: var(--destructive);
+  --crepe-color-hover: var(--accent);
+  --crepe-color-selected: oklch(0.82 0.04 250);
+  --crepe-color-inline-area: var(--muted);
+
+  --crepe-font-title: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --crepe-font-default: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --crepe-font-code: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --crepe-shadow-1: 0 0 0 1px var(--border), 0 2px 8px oklch(0 0 0 / 0.08);
+  --crepe-shadow-2: 0 0 0 1px var(--border), 0 4px 16px oklch(0 0 0 / 0.12);
+
+  background: transparent;
 }
-.milkdown-editor .ProseMirror h1 {
-  font-size: 1.875rem;
+
+/* 调整 Crepe 默认 padding */
+.milkdown-editor .milkdown .ProseMirror {
+  padding: 5rem;
+  padding-top: 0;
+}
+
+/* 标题字体 */
+.milkdown-editor .milkdown .ProseMirror h1,
+.milkdown-editor .milkdown .ProseMirror h2,
+.milkdown-editor .milkdown .ProseMirror h3,
+.milkdown-editor .milkdown .ProseMirror h4,
+.milkdown-editor .milkdown .ProseMirror h5,
+.milkdown-editor .milkdown .ProseMirror h6 {
+  letter-spacing: -0.01em;
+}
+.milkdown-editor .milkdown .ProseMirror h1 {
+  font-size: 1.75em;
   font-weight: 700;
   line-height: 1.3;
   margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
 }
-.milkdown-editor .ProseMirror h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
+.milkdown-editor .milkdown .ProseMirror h2 {
+  font-size: 1.375em;
+  font-weight: 650;
   line-height: 1.35;
   margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
 }
-.milkdown-editor .ProseMirror h3 {
-  font-size: 1.25rem;
+.milkdown-editor .milkdown .ProseMirror h3 {
+  font-size: 1.15em;
   font-weight: 600;
   line-height: 1.4;
   margin-top: 1rem;
-  margin-bottom: 0.5rem;
 }
-.milkdown-editor .ProseMirror h4 {
-  font-size: 1.125rem;
+.milkdown-editor .milkdown .ProseMirror h4 {
+  font-size: 1.05em;
   font-weight: 600;
   line-height: 1.4;
   margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
 }
-.milkdown-editor .ProseMirror p {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.7;
-}
-.milkdown-editor .ProseMirror strong {
-  font-weight: 700;
-}
-.milkdown-editor .ProseMirror em {
-  font-style: italic;
-}
-.milkdown-editor .ProseMirror code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+/* 行内代码字号微调 */
+.milkdown-editor .milkdown .ProseMirror code {
   font-size: 0.875em;
-  padding: 0.15em 0.35em;
-  border-radius: 0.25rem;
-  background: var(--muted);
-  color: var(--foreground);
 }
-.milkdown-editor .ProseMirror pre {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding: 0.75rem 1rem;
+
+/* 链接 */
+.milkdown-editor .milkdown .ProseMirror a {
+  color: oklch(0.55 0.15 250);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: oklch(0.55 0.15 250 / 0.4);
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.milkdown-editor .milkdown .ProseMirror a:hover {
+  color: oklch(0.45 0.18 250);
+  text-decoration-color: oklch(0.45 0.18 250);
+}
+.dark .milkdown-editor .milkdown .ProseMirror a {
+  color: oklch(0.7 0.15 250);
+  text-decoration-color: oklch(0.7 0.15 250 / 0.4);
+}
+.dark .milkdown-editor .milkdown .ProseMirror a:hover {
+  color: oklch(0.8 0.15 250);
+  text-decoration-color: oklch(0.8 0.15 250);
+}
+
+/* 图片样式 */
+.milkdown-editor .milkdown .milkdown-image-block > .image-wrapper img {
+  border: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
+  border-radius: 0.75rem;
+  cursor: zoom-in;
+}
+.milkdown-editor .milkdown .milkdown-image-block > .image-wrapper {
+  margin: 0 auto;
+}
+.milkdown-editor .milkdown .milkdown-image-inline img {
+  border: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
   border-radius: 0.5rem;
-  background: var(--muted);
-  overflow-x: auto;
+  cursor: zoom-in;
 }
-.milkdown-editor .ProseMirror pre code {
-  padding: 0;
+
+/* 引用块：缩小左边距 + 加深竖线颜色 */
+.milkdown-editor .milkdown .ProseMirror blockquote {
+  padding-left: 16px;
+}
+.milkdown-editor .milkdown .ProseMirror blockquote::before {
+  background: var(--muted-foreground);
+}
+
+/* GFM 删除线 */
+/* .milkdown-editor .milkdown .ProseMirror del,
+.milkdown-editor .milkdown .ProseMirror s {
+  text-decoration: line-through;
+  opacity: 0.7;
+} */
+
+/* 代码块样式优化 */
+.milkdown-editor .milkdown .milkdown-code-block {
+  border: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
+  border-radius: 0.75rem;
   background: transparent;
-  font-size: 0.85em;
-  line-height: 1.6;
+  margin: 0.75rem 0;
+  padding: 0;
+  overflow: visible;
 }
-.milkdown-editor .ProseMirror blockquote {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding-left: 1rem;
-  border-left: 3px solid var(--border);
-  color: var(--muted-foreground);
+
+/* 工具栏区域 */
+.milkdown-editor .milkdown .milkdown-code-block .tools {
+  padding: 0.375rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
 }
-.milkdown-editor .ProseMirror ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.milkdown-editor .ProseMirror ol {
-  list-style-type: decimal;
-  padding-left: 1.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.milkdown-editor .ProseMirror li {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-.milkdown-editor .ProseMirror li > p {
-  margin-top: 0;
+
+/* 语言选择按钮始终可见 */
+.milkdown-editor .milkdown .milkdown-code-block .tools .language-button {
+  opacity: 0.6;
   margin-bottom: 0;
+  background: transparent;
 }
-.milkdown-editor .ProseMirror hr {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: none;
+.milkdown-editor .milkdown .milkdown-code-block:hover .tools .language-button {
+  opacity: 1;
+}
+
+/* 复制等操作按钮 */
+.milkdown-editor .milkdown .milkdown-code-block .tools .tools-button-group button {
+  background: var(--accent);
+}
+
+/* CodeMirror 编辑器区域 */
+.milkdown-editor .milkdown .milkdown-code-block .cm-editor {
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+}
+
+.milkdown-editor .milkdown .milkdown-code-block .cm-gutters {
+  background: transparent;
+}
+
+/* 活跃行高亮 — 完全去除 */
+.milkdown-editor .milkdown .milkdown-code-block .cm-activeLineGutter {
+  background: transparent;
+}
+.milkdown-editor .milkdown .milkdown-code-block .cm-activeLine {
+  background: transparent;
+}
+
+/* 选中态 */
+.milkdown-editor .milkdown .milkdown-code-block.selected {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
+/* 语言选择下拉面板 — 不被 overflow 裁剪 */
+.milkdown-editor .milkdown .milkdown-code-block .language-picker {
+  z-index: 999;
+}
+.milkdown-editor .milkdown .milkdown-code-block .list-wrapper {
+  background: var(--popover);
+  border: 1px solid var(--border);
+}
+
+/* 预览面板（Mermaid 等） */
+.milkdown-editor .milkdown .milkdown-code-block .preview-panel .preview {
+  padding: 1rem;
   border-top: 1px solid var(--border);
 }
-.milkdown-editor .ProseMirror a {
-  color: var(--primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+
+/* === 表格样式优化 === */
+.milkdown-editor .milkdown .milkdown-table-block {
+  margin: 0.75rem 0;
 }
-.milkdown-editor .ProseMirror img {
-  max-width: 100%;
-  border-radius: 0.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.milkdown-editor .ProseMirror table {
+
+.milkdown-editor .milkdown .milkdown-table-block table {
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
+  border: none;
 }
-.milkdown-editor .ProseMirror th,
-.milkdown-editor .ProseMirror td {
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.75rem;
-  text-align: left;
+
+/* 单元格：只保留横线 */
+.milkdown-editor .milkdown .milkdown-table-block th,
+.milkdown-editor .milkdown .milkdown-table-block td {
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground), transparent 85%);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9em;
+  line-height: 1.6;
 }
-.milkdown-editor .ProseMirror th {
-  font-weight: 600;
+
+/* 最后一行去掉底边线 */
+.milkdown-editor .milkdown .milkdown-table-block tr:last-child td {
+  border-bottom: none;
+}
+
+/* 表头：浅灰背景 + 圆角 */
+.milkdown-editor .milkdown .milkdown-table-block th {
   background: var(--muted);
+  font-weight: 600;
+  color: var(--foreground);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
+}
+.milkdown-editor .milkdown .milkdown-table-block th:first-child {
+  border-top-left-radius: 0.5rem;
+}
+.milkdown-editor .milkdown .milkdown-table-block th:last-child {
+  border-top-right-radius: 0.5rem;
+}
+.dark .milkdown-editor .milkdown .milkdown-table-block th {
+  background: oklch(0.25 0 0);
+}
+
+/* 表体行 hover */
+.milkdown-editor .milkdown .milkdown-table-block tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent), transparent 50%);
+}
+
+/* 选中单元格 */
+.milkdown-editor .milkdown .milkdown-table-block .selectedCell::after {
+  background-color: color-mix(in srgb, var(--primary), transparent 85%);
+  border-radius: 2px;
 }
