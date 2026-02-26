@@ -162,7 +162,7 @@
   --crepe-color-inline-code: var(--foreground);
   --crepe-color-error: var(--destructive);
   --crepe-color-hover: var(--accent);
-  --crepe-color-selected: oklch(0.82 0.04 250);
+  --crepe-color-selected: oklch(0.92 0 0);
   --crepe-color-inline-area: var(--muted);
 
   --crepe-font-title: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -179,6 +179,9 @@
   --crepe-shadow-2: 0 0 0 1px var(--border), 0 4px 16px oklch(0 0 0 / 0.12);
 
   background: transparent;
+}
+.dark .milkdown-editor .milkdown {
+  --crepe-color-selected: oklch(0.3 0 0);
 }
 
 /* 调整 Crepe 默认 padding */
