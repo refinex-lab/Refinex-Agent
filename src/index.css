@@ -183,7 +183,7 @@
 
 /* 调整 Crepe 默认 padding */
 .milkdown-editor .milkdown .ProseMirror {
-  padding: 5rem;
+  padding: 3.1rem;
   padding-top: 0;
 }
 
@@ -403,6 +403,18 @@
 }
 
 /* === 只读模式：隐藏编辑态 UI 元素 === */
+
+/* Block handle（+ 号和拖拽手柄）缩小 */
+.milkdown-editor .milkdown .milkdown-block-handle .operation-item {
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+}
+.milkdown-editor .milkdown .milkdown-block-handle .operation-item svg {
+  width: 18px;
+  height: 18px;
+}
+
 .milkdown-editor .milkdown .ProseMirror[contenteditable="false"] {
   cursor: default;
   caret-color: transparent;
